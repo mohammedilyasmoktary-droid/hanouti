@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl
 
@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
       const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
       
       if (!secret) {
-        console.error("[Middleware] NEXTAUTH_SECRET or AUTH_SECRET not set")
+        console.error("[Proxy] NEXTAUTH_SECRET or AUTH_SECRET not set")
         const loginUrl = new URL("/admin/login", request.url)
         return NextResponse.redirect(loginUrl)
       }
@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
           secret,
         })
       } catch (e) {
-        console.error("[Middleware] Error getting token:", e)
+        console.error("[Proxy] Error getting token:", e)
         const loginUrl = new URL("/admin/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
         return NextResponse.redirect(loginUrl)
@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set("x-pathname", pathname)
     return response
   } catch (error) {
-    console.error("[Middleware] Unexpected error:", error)
+    console.error("[Proxy] Unexpected error:", error)
     // On error, allow the request to continue (let the layout handle it)
     const response = NextResponse.next()
     response.headers.set("x-pathname", request.nextUrl.pathname)
