@@ -47,7 +47,7 @@ export async function GET(
     }
 
     // Generate PDF
-    const doc = <ReceiptTemplate order={orderData} />
+    const doc = React.createElement(ReceiptTemplate, { order: orderData }) as any
     const stream = await renderToStream(doc)
 
     // Return PDF stream as response
