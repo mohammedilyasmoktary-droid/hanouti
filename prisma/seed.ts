@@ -254,7 +254,7 @@ async function main() {
         update: {
           nameFr: childData.nameFr,
           nameAr: childData.nameAr,
-          imageUrl: childData.imageUrl,
+          imageUrl: null,
           sortOrder: childData.sortOrder,
           parentId: parent.id,
           isActive: true,
