@@ -1,0 +1,65 @@
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from "lucide-react"
+import { CategoriesList } from "@/components/admin/categories-list"
+
+async function getCategories() {
+  // Get all parent categories (categories with no parent)
+  const parentCategories = await prisma.category.findMany({
+    where: {
+      parentId: null,
+    },
+    include: {
+      children: {
+        include: {
+          _count: {
+            select: {
+              products: true,
+            },
+          },
+        },
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      _count: {
+        select: {
+          products: true,
+        },
+      },
+    },
+    orderBy: {
+      sortOrder: "asc",
+    },
+  })
+
+  return parentCategories
+}
+
+export default async function AdminCategoriesPage() {
+  const categories = await getCategories()
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Catégories</h1>
+          <p className="text-muted-foreground mt-1.5">
+            Gérez vos catégories et sous-catégories
+          </p>
+        </div>
+        <Link href="/admin/categories/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle catégorie
+          </Button>
+        </Link>
+      </div>
+
+      <CategoriesList initialCategories={categories} />
+    </div>
+  )
+}
+

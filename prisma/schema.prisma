@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  nameFr    String
+  nameAr    String?
+  slug      String     @unique
+  imageUrl  String?
+  parentId  String?
+  parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Category[] @relation("CategoryToCategory")
+  sortOrder Int        @default(0)
+  isActive  Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  nameFr      String
+  nameAr      String?
+  slug        String      @unique
+  description String?
+  price       Decimal     @db.Decimal(10, 2)
+  imageUrl    String?
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isActive    Boolean     @default(true)
+  stock       Int         @default(0)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerName  String
+  customerPhone String
+  customerEmail String?
+  deliveryMethod OrderDeliveryMethod @default(DELIVERY)
+  address       String?
+  city          String?
+  notes         String?
+  status        OrderStatus @default(PENDING)
+  total         Decimal     @db.Decimal(10, 2)
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  nameFr    String
+  price     Decimal  @db.Decimal(10, 2)
+  quantity  Int
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderDeliveryMethod {
+  DELIVERY
+  PICKUP
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model HomepageContent {
+  id        String   @id @default(cuid())
+  section   String   @unique // "hero", "categories", "products", "promos", "trust"
+  data      String   // JSON string containing section-specific data
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
