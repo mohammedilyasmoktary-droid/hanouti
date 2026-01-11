@@ -10,7 +10,7 @@ import { CategoryCard } from "@/components/cards/category-card"
 import { ProductCard } from "@/components/cart/product-card"
 import { Card, CardContent } from "@/components/ui/card"
 
-export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 async function getHomepageContent() {
   try {
