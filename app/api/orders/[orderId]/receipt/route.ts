@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import React from "react"
-import { renderToBuffer } from "@react-pdf/renderer"
+import { renderToStream } from "@react-pdf/renderer"
 import { ReceiptTemplate } from "@/components/receipt/receipt-template"
 
 export const dynamic = "force-dynamic"
@@ -47,12 +47,11 @@ export async function GET(
     }
 
     // Generate PDF
-    const pdfBuffer = await renderToBuffer(
-      React.createElement(ReceiptTemplate, { order: orderData })
-    )
+    const doc = <ReceiptTemplate order={orderData} />
+    const stream = await renderToStream(doc)
 
-    // Return PDF as response
-    return new NextResponse(pdfBuffer, {
+    // Return PDF stream as response
+    return new NextResponse(stream as any, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="receipt-${order.orderNumber}.pdf"`,
