@@ -21,14 +21,21 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
-      const result = await signIn("credentials", {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout: La connexion a pris trop de temps")), 10000)
+      )
+
+      const signInPromise = signIn("credentials", {
         email,
         password,
         redirect: false,
       })
 
+      const result = await Promise.race([signInPromise, timeoutPromise]) as any
+
       if (result?.error) {
-        setError("Email ou mot de passe incorrect")
+        setError(`Erreur: ${result.error}`)
         setLoading(false)
         return
       }
@@ -36,9 +43,14 @@ export default function AdminLoginPage() {
       if (result?.ok) {
         router.push("/admin")
         router.refresh()
+      } else {
+        setError("Échec de la connexion. Veuillez vérifier vos identifiants.")
+        setLoading(false)
       }
     } catch (err) {
-      setError("Une erreur est survenue. Veuillez réessayer.")
+      console.error("Login error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer."
+      setError(errorMessage)
       setLoading(false)
     }
   }
