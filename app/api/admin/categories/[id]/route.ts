@@ -10,7 +10,7 @@ const updateSchema = z.object({
   imageUrl: z
     .string()
     .refine(
-      (val) => !val || val === "" || val.startsWith("/uploads/") || val.startsWith("http://") || val.startsWith("https://"),
+      (val) => !val || val === "" || val.startsWith("/uploads/") || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("data:"),
       { message: "URL invalide" }
     )
     .optional()
