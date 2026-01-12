@@ -131,8 +131,15 @@ export default async function HomePage() {
     const categoryIds = homepageContent.categories?.categoryIds
     featuredCategories = await getFeaturedCategories(categoryIds)
     popularProducts = await getPopularProducts()
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching data:", error)
+    // Log detailed error for debugging
+    if (error?.message) {
+      console.error("Error message:", error.message)
+    }
+    if (error?.stack) {
+      console.error("Error stack:", error.stack)
+    }
     // Continue with empty arrays if database error
   }
 
