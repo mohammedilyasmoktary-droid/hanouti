@@ -8,6 +8,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Hanouti - Vos produits frais livrés",
   description: "Découvrez notre sélection de produits locaux et de qualité",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
 }
 
 export default function RootLayout({
