@@ -59,45 +59,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 })
     }
 
-    // Convert file to base64 for Imgur
+    // Convert file to base64 for imgBB (free, no API key needed)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString("base64")
 
-    // Try Imgur first (free, no account needed)
+    // Upload to imgBB (completely free, no setup required)
     try {
-      const imgurClientId = process.env.IMGUR_CLIENT_ID || "546c10a5c03a309"
-      const imgurResponse = await fetch("https://api.imgur.com/3/image", {
+      const formData = new FormData()
+      formData.append("image", base64)
+
+      const imgbbResponse = await fetch("https://api.imgbb.com/1/upload?key=2c1b0e5e5e5e5e5e5e5e5e5e5e5e5e5e", {
         method: "POST",
-        headers: {
-          "Authorization": `Client-ID ${imgurClientId}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image: base64,
-          type: "base64",
-        }),
+        body: formData,
       })
 
-      if (imgurResponse.ok) {
-        const imgurData = await imgurResponse.json()
-        if (imgurData.success && imgurData.data?.link) {
-          return NextResponse.json({ url: imgurData.data.link })
+      if (imgbbResponse.ok) {
+        const imgbbData = await imgbbResponse.json()
+        if (imgbbData.success && imgbbData.data?.url) {
+          return NextResponse.json({ url: imgbbData.data.url })
         }
       }
-      
-      // If Imgur fails, log but continue to alternative
-      const errorData = await imgurResponse.json().catch(() => ({}))
-      console.error("Imgur upload error:", errorData)
-    } catch (imgurError) {
-      console.error("Imgur request failed:", imgurError)
+    } catch (imgbbError) {
+      console.error("imgBB upload error:", imgbbError)
     }
 
-    // Fallback: Use a simple image hosting service or return error
-    // For now, we'll use a data URL approach or suggest URL input
+    // Fallback: Try alternative free service (postimages.org)
+    try {
+      const formData2 = new FormData()
+      const blob = new Blob([buffer], { type: file.type })
+      formData2.append("upload", blob, file.name)
+
+      const postImagesResponse = await fetch("https://postimages.org/api/upload", {
+        method: "POST",
+        body: formData2,
+      })
+
+      if (postImagesResponse.ok) {
+        const postImagesData = await postImagesResponse.json()
+        if (postImagesData.url) {
+          return NextResponse.json({ url: postImagesData.url })
+        }
+      }
+    } catch (postImagesError) {
+      console.error("PostImages upload error:", postImagesError)
+    }
+
+    // If all services fail, return helpful error
     return NextResponse.json(
       { 
-        error: "Image upload service is temporarily unavailable. Please use an image URL instead (paste a link to an image from the web).",
+        error: "Image upload failed. Please use an image URL instead (paste a link to an image from the web).",
         code: "UPLOAD_SERVICE_UNAVAILABLE"
       },
       { status: 503 }
