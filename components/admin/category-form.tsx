@@ -156,8 +156,8 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
-        if (errorData.code === "VERCEL_READONLY") {
-          throw new Error("Les téléchargements de fichiers ne sont pas disponibles sur Vercel. Veuillez utiliser une URL d'image (ex: https://example.com/image.jpg)")
+        if (errorData.code === "CLOUDINARY_NOT_CONFIGURED") {
+          throw new Error("Cloudinary n'est pas configuré. Veuillez configurer les variables d'environnement CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY et CLOUDINARY_API_SECRET.")
         }
         throw new Error(errorData.error || `Erreur ${res.status}: ${res.statusText}`)
       }
@@ -273,46 +273,47 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
                     </div>
                   )}
 
-                  {/* URL Input */}
-                  <Input
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    value={field.value || ""}
-                    onChange={(e) => {
-                      field.onChange(e.target.value)
-                      setImagePreview(e.target.value || null)
-                    }}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Collez l'URL de l'image (ex: https://images.unsplash.com/photo-...)
-                  </p>
+                  {/* File Upload */}
+                  <div className="space-y-2">
+                    <label className="inline-block w-full">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        disabled={uploading}
+                        onClick={() => document.getElementById("image-upload")?.click()}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
+                      </Button>
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Formats acceptés: JPG, PNG, GIF. Taille maximum: 5MB
+                    </p>
+                  </div>
 
-                  {/* File Upload - Hidden on Vercel */}
-                  {process.env.NEXT_PUBLIC_ENABLE_UPLOADS === "true" && (
-                    <div>
-                      <label className="inline-block w-full">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          disabled={uploading}
-                          className="hidden"
-                          id="image-upload"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          disabled={uploading}
-                          onClick={() => document.getElementById("image-upload")?.click()}
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
-                        </Button>
-                      </label>
-                    </div>
-                  )}
+                  {/* URL Input - Alternative method */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Ou collez une URL d'image:</p>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={field.value || ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value)
+                        setImagePreview(e.target.value || null)
+                      }}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </FormControl>
               <FormMessage />

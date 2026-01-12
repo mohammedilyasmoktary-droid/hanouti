@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
+import { v2 as cloudinary } from "cloudinary"
 
 export async function POST(req: Request) {
   try {
@@ -62,40 +60,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 })
     }
 
-    // Check if we're on Vercel (read-only filesystem)
-    const isVercel = process.env.VERCEL === "1"
-    
-    if (isVercel) {
-      // Vercel has a read-only filesystem - cannot save files
+    // Configure Cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    })
+
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       return NextResponse.json(
         { 
-          error: "File uploads are not supported on Vercel. Please use an image URL instead (e.g., https://example.com/image.jpg)",
-          code: "VERCEL_READONLY"
+          error: "Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.",
+          code: "CLOUDINARY_NOT_CONFIGURED"
         },
-        { status: 400 }
+        { status: 500 }
       )
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads")
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
-
-    // Generate unique filename
+    // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const timestamp = Date.now()
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
-    const filename = `${timestamp}-${originalName}`
-    const filepath = join(uploadsDir, filename)
 
-    // Save file
-    await writeFile(filepath, buffer)
+    // Upload to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "hanouti",
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result)
+        }
+      )
+      uploadStream.end(buffer)
+    }) as any
 
-    // Return public URL
-    const url = `/uploads/${filename}`
-    return NextResponse.json({ url })
+    // Return the secure URL
+    return NextResponse.json({ url: uploadResult.secure_url })
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(

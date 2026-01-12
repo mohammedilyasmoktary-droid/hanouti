@@ -145,8 +145,8 @@ export function ProductForm({ product, categories }: ProductFormProps) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
-        if (errorData.code === "VERCEL_READONLY") {
-          throw new Error("Les téléchargements de fichiers ne sont pas disponibles sur Vercel. Veuillez utiliser une URL d'image (ex: https://example.com/image.jpg)")
+        if (errorData.code === "CLOUDINARY_NOT_CONFIGURED") {
+          throw new Error("Cloudinary n'est pas configuré. Veuillez configurer les variables d'environnement CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY et CLOUDINARY_API_SECRET.")
         }
         throw new Error(errorData.error || `Erreur ${res.status}: ${res.statusText}`)
       }
@@ -324,8 +324,36 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                     </div>
                   )}
 
-                  {/* URL Input - Primary method */}
+                  {/* File Upload */}
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="image-upload"
+                        className="flex items-center justify-center px-4 py-2 border border-border rounded-lg bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors text-sm font-medium"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
+                      </label>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                      {uploading && (
+                        <span className="text-sm text-muted-foreground">En cours...</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Formats acceptés: JPG, PNG, GIF. Taille maximum: 5MB
+                    </p>
+                  </div>
+
+                  {/* URL Input - Alternative method */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Ou collez une URL d'image:</p>
                     <Input
                       type="url"
                       placeholder="https://example.com/image.jpg"
@@ -336,9 +364,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                       }}
                       className="w-full"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Collez l'URL de l'image (ex: https://images.unsplash.com/photo-...)
-                    </p>
                   </div>
                 </div>
               </FormControl>
