@@ -40,24 +40,25 @@ export default async function AdminLayout({
     // Always show the layout with sidebar - middleware protects the routes
     return (
       <div 
-        className="flex min-h-screen bg-muted/50 overflow-x-hidden" 
         style={{ 
-          display: "flex !important",
-          flexDirection: "row !important",
+          display: "flex",
+          flexDirection: "row",
           width: "100%",
+          minHeight: "100vh",
         }}
       >
         <AdminSidebar />
         <div 
-          className="flex-1 flex flex-col min-w-0" 
           style={{ 
-            flex: "1 1 0% !important", 
+            flex: "1 1 0%", 
             minWidth: 0,
-            marginLeft: 0,
+            marginLeft: "256px",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <AdminTopbar />
-          <main className="flex-1 p-6 lg:p-8 overflow-auto">{children}</main>
+          <main style={{ flex: 1, padding: "1.5rem", overflow: "auto" }}>{children}</main>
         </div>
       </div>
     )

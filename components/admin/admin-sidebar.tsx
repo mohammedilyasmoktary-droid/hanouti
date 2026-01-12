@@ -25,21 +25,23 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm relative z-10"
       style={{
-        backgroundColor: "#ffffff !important",
-        display: "flex !important",
-        width: "16rem !important",
-        minWidth: "16rem !important",
-        maxWidth: "16rem !important",
+        backgroundColor: "#ff0000",
+        display: "flex",
+        width: "256px",
+        minWidth: "256px",
+        maxWidth: "256px",
         flexShrink: 0,
-        position: "relative !important",
-        zIndex: 10,
-        visibility: "visible !important",
-        opacity: "1 !important",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        zIndex: 9999,
+        visibility: "visible",
+        opacity: 1,
         height: "100vh",
         overflowY: "auto",
-        borderRight: "1px solid #e4e4e7",
+        borderRight: "3px solid #000000",
+        flexDirection: "column",
       }}
     >
       <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
