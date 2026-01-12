@@ -14,12 +14,15 @@ export const dynamic = "force-dynamic"
 
 async function getHomepageContent() {
   try {
-    // Safety check: ensure the model exists on the Prisma client
-    if (!prisma || !('homepageContent' in prisma)) {
-      console.warn("HomepageContent model not available, using defaults")
+    // Check if HomepageContent model exists in schema
+    // If not, return empty object (will use defaults)
+    if (!prisma) {
+      console.warn("Prisma client not available, using defaults")
       return {}
     }
 
+    // Try to access the model - if it doesn't exist, this will throw
+    // We catch it and return empty object
     const contents = await prisma.homepageContent.findMany({
       where: {
         isActive: true,
@@ -37,18 +40,27 @@ async function getHomepageContent() {
 
     return contentMap
   } catch (error: any) {
-    // Handle various error cases gracefully
+    // Handle all Prisma errors gracefully
+    // P2001 = Record not found
+    // P2025 = Record to update/delete not found
+    // Any error about model not existing
     if (
       error?.code === 'P2001' || 
+      error?.code === 'P2025' ||
       error?.message?.includes('does not exist') || 
+      error?.message?.includes('Unknown model') ||
+      error?.message?.includes('homepageContent') ||
       error?.message?.includes('findMany') ||
-      error?.message?.includes('Cannot read properties of undefined')
+      error?.message?.includes('Cannot read properties of undefined') ||
+      error?.name === 'PrismaClientKnownRequestError' ||
+      error?.name === 'PrismaClientInitializationError'
     ) {
-      console.warn("HomepageContent model not available yet, using defaults")
+      console.warn("HomepageContent model not available, using defaults:", error?.message || error)
       return {}
     }
     console.error("Error fetching homepage content:", error)
-    return {} // Return empty object, will use defaults
+    // Always return empty object to prevent crashes
+    return {}
   }
 }
 
