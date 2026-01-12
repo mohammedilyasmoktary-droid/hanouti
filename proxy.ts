@@ -22,13 +22,31 @@ export async function proxy(request: NextRequest) {
         const cookieHeader = request.headers.get("cookie") || ""
         const allCookies = cookieHeader.split(";").map(c => c.trim())
         
-        token = await getToken({
-          req: request,
-          secret,
-          cookieName: process.env.NODE_ENV === "production" 
-            ? "__Secure-authjs.session-token" 
-            : "authjs.session-token",
-        })
+        // Try multiple cookie names (NextAuth v5 uses different names)
+        const cookieNames = [
+          "__Secure-authjs.session-token",
+          "authjs.session-token",
+          "__Secure-next-auth.session-token",
+          "next-auth.session-token",
+        ]
+        
+        let token = null
+        for (const cookieName of cookieNames) {
+          try {
+            token = await getToken({
+              req: request,
+              secret,
+              cookieName,
+            })
+            if (token) {
+              console.log("[Proxy] Found token with cookie name:", cookieName)
+              break
+            }
+          } catch (e) {
+            // Try next cookie name
+            continue
+          }
+        }
         
         // Debug logging
         console.log("[Proxy] Token check:", {

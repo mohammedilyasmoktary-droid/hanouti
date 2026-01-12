@@ -21,14 +21,28 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
-      // Let NextAuth handle redirect to ensure cookies are properly set
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email,
         password,
-        redirect: true,
+        redirect: false, // Don't redirect automatically, handle it ourselves
         callbackUrl: "/admin",
       })
-      // signIn with redirect: true will navigate automatically, so we don't need to do anything else
+
+      if (result?.error) {
+        setError("Email ou mot de passe incorrect")
+        setLoading(false)
+        return
+      }
+
+      if (result?.ok) {
+        // Success! Force a full page reload to ensure cookies are set
+        window.location.href = "/admin"
+        return
+      }
+
+      // If we get here, something unexpected happened
+      setError("Une erreur est survenue. Veuillez réessayer.")
+      setLoading(false)
     } catch (err) {
       console.error("Login error:", err)
       setError("Une erreur est survenue. Veuillez réessayer.")
