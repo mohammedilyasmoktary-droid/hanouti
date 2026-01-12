@@ -26,26 +26,20 @@ export default async function AdminLayout({
     }
 
     // Try to get session (middleware already checked auth, so this should work)
-    // But if it fails, we'll just show children without layout
     let session
     try {
       session = await getServerSession()
     } catch (e) {
-      // Session check failed - return plain children
+      // Session check failed - log but still show layout
       // Middleware should have redirected if not authenticated
       console.error("[AdminLayout] Session check failed:", e)
-      return <>{children}</>
     }
 
     // If no session or not admin, middleware should have redirected
-    // But just in case, return plain children
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return <>{children}</>
-    }
-
-    // All checks passed - show admin layout
+    // But if we get here, show layout anyway (middleware handles auth)
+    // Always show the layout with sidebar - middleware protects the routes
     return (
-      <div className="flex min-h-screen bg-muted/50 overflow-x-hidden" style={{ display: "flex" }}>
+      <div className="flex min-h-screen bg-muted/50 overflow-x-hidden" style={{ display: "flex !important" }}>
         <AdminSidebar />
         <div className="flex-1 flex flex-col min-w-0" style={{ flex: "1 1 0%", minWidth: 0 }}>
           <AdminTopbar />
@@ -56,8 +50,16 @@ export default async function AdminLayout({
   } catch (error: any) {
     // Catch any unexpected errors and log them
     console.error("[AdminLayout] Unexpected error:", error?.message || error)
-    // Return plain children to prevent complete failure
-    return <>{children}</>
+    // Still show layout even on error - better UX than blank page
+    return (
+      <div className="flex min-h-screen bg-muted/50 overflow-x-hidden" style={{ display: "flex !important" }}>
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col min-w-0" style={{ flex: "1 1 0%", minWidth: 0 }}>
+          <AdminTopbar />
+          <main className="flex-1 p-6 lg:p-8 overflow-auto">{children}</main>
+        </div>
+      </div>
+    )
   }
 }
 
