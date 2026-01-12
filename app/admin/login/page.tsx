@@ -21,36 +21,17 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout: La connexion a pris trop de temps")), 10000)
-      )
-
-      const signInPromise = signIn("credentials", {
+      // Let NextAuth handle redirect to ensure cookies are properly set
+      await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: "/admin",
       })
-
-      const result = await Promise.race([signInPromise, timeoutPromise]) as any
-
-      if (result?.error) {
-        setError(`Erreur: ${result.error}`)
-        setLoading(false)
-        return
-      }
-
-      if (result?.ok) {
-        // Force a hard navigation to ensure session is loaded
-        window.location.href = "/admin"
-      } else {
-        setError("Échec de la connexion. Veuillez vérifier vos identifiants.")
-        setLoading(false)
-      }
+      // signIn with redirect: true will navigate automatically, so we don't need to do anything else
     } catch (err) {
       console.error("Login error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer."
-      setError(errorMessage)
+      setError("Une erreur est survenue. Veuillez réessayer.")
       setLoading(false)
     }
   }
