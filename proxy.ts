@@ -64,10 +64,10 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl)
       }
 
-      if (!token || token.role !== "ADMIN") {
+      if (!token || (token as any).role !== "ADMIN") {
         console.log("[Proxy] No token or not ADMIN, redirecting to login", {
           hasToken: !!token,
-          role: token?.role,
+          role: (token as any)?.role,
         })
         const loginUrl = new URL("/admin/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
