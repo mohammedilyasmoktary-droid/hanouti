@@ -145,6 +145,9 @@ export function ProductForm({ product, categories }: ProductFormProps) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
+        if (errorData.code === "VERCEL_READONLY") {
+          throw new Error("Les téléchargements de fichiers ne sont pas disponibles sur Vercel. Veuillez utiliser une URL d'image (ex: https://example.com/image.jpg)")
+        }
         throw new Error(errorData.error || `Erreur ${res.status}: ${res.statusText}`)
       }
 
