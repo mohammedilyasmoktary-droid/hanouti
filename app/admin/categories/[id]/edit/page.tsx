@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 import { CategoryForm } from "@/components/admin/category-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = "force-dynamic"
+
 async function getCategory(id: string) {
   try {
     if (!prisma) {
