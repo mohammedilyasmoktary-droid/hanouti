@@ -245,7 +245,7 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image (optionnel)</FormLabel>
+              <FormLabel>Image URL (optionnel)</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {/* Image Preview */}
@@ -256,6 +256,10 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
                           src={imagePreview}
                           alt="Preview"
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Hide broken images
+                            e.currentTarget.style.display = "none"
+                          }}
                         />
                       </div>
                       <button
@@ -269,29 +273,46 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
                     </div>
                   )}
 
-                  {/* File Upload */}
-                  <div>
-                    <label className="inline-block w-full">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        disabled={uploading}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        disabled={uploading}
-                        onClick={() => document.getElementById("image-upload")?.click()}
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
-                      </Button>
-                    </label>
-                  </div>
+                  {/* URL Input */}
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      field.onChange(e.target.value)
+                      setImagePreview(e.target.value || null)
+                    }}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Collez l'URL de l'image (ex: https://images.unsplash.com/photo-...)
+                  </p>
+
+                  {/* File Upload - Hidden on Vercel */}
+                  {process.env.NEXT_PUBLIC_ENABLE_UPLOADS === "true" && (
+                    <div>
+                      <label className="inline-block w-full">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          disabled={uploading}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          disabled={uploading}
+                          onClick={() => document.getElementById("image-upload")?.click()}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
+                        </Button>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </FormControl>
               <FormMessage />

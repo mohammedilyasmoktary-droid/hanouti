@@ -324,29 +324,20 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                     </div>
                   )}
 
+                  {/* URL Input - Primary method */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <label
-                        htmlFor="image-upload"
-                        className="flex items-center justify-center px-4 py-2 border border-border rounded-lg bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors text-sm font-medium"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? "Téléchargement..." : imagePreview ? "Changer l'image" : "Télécharger une image"}
-                      </label>
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                        disabled={uploading}
-                      />
-                      {uploading && (
-                        <span className="text-sm text-muted-foreground">En cours...</span>
-                      )}
-                    </div>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={field.value || ""}
+                      onChange={(e) => {
+                        field.onChange(e.target.value)
+                        setImagePreview(e.target.value || null)
+                      }}
+                      className="w-full"
+                    />
                     <p className="text-xs text-muted-foreground">
-                      Formats acceptés: JPG, PNG, GIF. Taille maximum: 5MB
+                      Collez l'URL de l'image (ex: https://images.unsplash.com/photo-...)
                     </p>
                   </div>
                 </div>
