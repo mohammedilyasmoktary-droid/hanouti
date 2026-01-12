@@ -20,65 +20,64 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError("")
 
+    // Create a timeout promise
+    const timeout = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Login timeout after 15 seconds"))
+      }, 15000)
+    })
+
     try {
-      console.log("Attempting login...")
+      console.log("[Login] Starting login attempt for:", email)
       
-      // Try direct API call first to see if it works
-      const response = await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
+      // Race between signIn and timeout
+      const result = await Promise.race([
+        signIn("credentials", {
           email,
           password,
-          redirect: "false",
+          redirect: false,
           callbackUrl: "/admin",
         }),
-      })
+        timeout,
+      ]) as any
 
-      console.log("API response status:", response.status)
+      console.log("[Login] Result received:", result)
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("API error:", errorData)
+      if (result?.error) {
+        console.error("[Login] Error:", result.error)
         setError("Email ou mot de passe incorrect")
         setLoading(false)
         return
       }
 
-      // If API call succeeded, try signIn to set cookies properly
-      console.log("API call succeeded, calling signIn...")
-      
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-        callbackUrl: "/admin",
-      })
-
-      console.log("SignIn result:", result)
-
-      if (result?.error) {
-        console.error("SignIn error:", result.error)
+      if (result?.ok === false) {
+        console.error("[Login] Login failed")
         setError("Email ou mot de passe incorrect")
         setLoading(false)
         return
       }
 
       if (result?.ok) {
-        console.log("Login successful, redirecting...")
-        // Force full page reload
-        window.location.href = "/admin"
+        console.log("[Login] Success! Redirecting...")
+        // Use router.push for client-side navigation, then reload
+        router.push("/admin")
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
         return
       }
 
-      // Fallback: if signIn doesn't work but API did, try redirect anyway
-      console.log("SignIn returned unexpected result, trying redirect anyway...")
-      window.location.href = "/admin"
-    } catch (err: any) {
-      console.error("Login error:", err)
+      // Unexpected result
+      console.warn("[Login] Unexpected result:", result)
       setError("Une erreur est survenue. Veuillez réessayer.")
+      setLoading(false)
+    } catch (err: any) {
+      console.error("[Login] Exception:", err)
+      if (err?.message?.includes("timeout")) {
+        setError("La connexion prend trop de temps. Vérifiez votre connexion et réessayez.")
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer.")
+      }
       setLoading(false)
     }
   }
