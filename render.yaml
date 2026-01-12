@@ -3,6 +3,7 @@ services:
     name: hanouti
     env: node
     plan: free
+    nodeVersion: 20
     buildCommand: npm ci && npm run build
     startCommand: npm start
     envVars:
