@@ -156,6 +156,9 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
+        if (errorData.code === "UPLOAD_SERVICE_UNAVAILABLE") {
+          throw new Error("Le service de téléchargement n'est pas disponible. Veuillez utiliser une URL d'image à la place (collez un lien vers une image sur le web).")
+        }
         throw new Error(errorData.error || `Erreur ${res.status}: ${res.statusText}`)
       }
 

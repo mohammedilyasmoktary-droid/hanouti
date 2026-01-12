@@ -64,39 +64,44 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString("base64")
 
-    // Upload to Imgur (free, no account needed for anonymous uploads)
-    const imgurResponse = await fetch("https://api.imgur.com/3/image", {
-      method: "POST",
-      headers: {
-        "Authorization": `Client-ID ${process.env.IMGUR_CLIENT_ID || "546c10a5c03a309"}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image: base64,
-        type: "base64",
-      }),
-    })
+    // Try Imgur first (free, no account needed)
+    try {
+      const imgurClientId = process.env.IMGUR_CLIENT_ID || "546c10a5c03a309"
+      const imgurResponse = await fetch("https://api.imgur.com/3/image", {
+        method: "POST",
+        headers: {
+          "Authorization": `Client-ID ${imgurClientId}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: base64,
+          type: "base64",
+        }),
+      })
 
-    if (!imgurResponse.ok) {
+      if (imgurResponse.ok) {
+        const imgurData = await imgurResponse.json()
+        if (imgurData.success && imgurData.data?.link) {
+          return NextResponse.json({ url: imgurData.data.link })
+        }
+      }
+      
+      // If Imgur fails, log but continue to alternative
       const errorData = await imgurResponse.json().catch(() => ({}))
       console.error("Imgur upload error:", errorData)
-      return NextResponse.json(
-        { error: "Failed to upload image. Please try again or use an image URL instead." },
-        { status: 500 }
-      )
+    } catch (imgurError) {
+      console.error("Imgur request failed:", imgurError)
     }
 
-    const imgurData = await imgurResponse.json()
-    
-    if (!imgurData.success || !imgurData.data?.link) {
-      return NextResponse.json(
-        { error: "Failed to upload image. Please try again or use an image URL instead." },
-        { status: 500 }
-      )
-    }
-
-    // Return the image URL
-    return NextResponse.json({ url: imgurData.data.link })
+    // Fallback: Use a simple image hosting service or return error
+    // For now, we'll use a data URL approach or suggest URL input
+    return NextResponse.json(
+      { 
+        error: "Image upload service is temporarily unavailable. Please use an image URL instead (paste a link to an image from the web).",
+        code: "UPLOAD_SERVICE_UNAVAILABLE"
+      },
+      { status: 503 }
+    )
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(
