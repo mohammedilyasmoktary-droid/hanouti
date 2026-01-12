@@ -21,7 +21,14 @@ export function AdminSidebar() {
   return (
     <aside
       className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm relative z-10"
-      style={{ backgroundColor: "#ffffff" }}
+      style={{
+        backgroundColor: "#ffffff",
+        display: "flex",
+        width: "16rem",
+        flexShrink: 0,
+        position: "relative",
+        zIndex: 10,
+      }}
     >
       <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
         <Link href="/admin" className="flex items-center space-x-2 group">
