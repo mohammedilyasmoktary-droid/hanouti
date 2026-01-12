@@ -45,7 +45,7 @@ async function getCategories() {
 }
 
 export default async function AdminCategoriesPage() {
-  let categories = []
+  let categories: Awaited<ReturnType<typeof getCategories>> = []
   try {
     categories = await getCategories()
   } catch (error) {
