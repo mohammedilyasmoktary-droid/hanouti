@@ -23,7 +23,7 @@ export function AdminSidebar() {
       <div className="flex h-16 items-center border-b border-border px-6">
         <Link href="/admin" className="flex items-center space-x-2 group">
           <span className="text-xl font-bold text-primary group-hover:text-primary/90 transition-colors">Hanouti</span>
-          <span className="text-xs text-muted-foreground font-medium">Admin</span>
+          <span className="text-xs text-foreground/70 font-medium">Admin</span>
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-4">
@@ -35,10 +35,10 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all shadow-xs",
+                "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all shadow-xs cursor-pointer",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground hover:shadow-xs active:bg-accent/80"
+                  : "text-foreground hover:bg-accent hover:text-foreground hover:shadow-xs active:bg-accent/80"
               )}
             >
               <Icon className="h-5 w-5" />
