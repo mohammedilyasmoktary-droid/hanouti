@@ -19,7 +19,10 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm relative z-10">
+    <aside
+      className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm relative z-10"
+      style={{ backgroundColor: "#ffffff" }}
+    >
       <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
         <Link href="/admin" className="flex items-center space-x-2 group">
           <span className="text-xl font-bold text-primary group-hover:text-primary/90 transition-colors">Hanouti</span>
@@ -40,9 +43,19 @@ export function AdminSidebar() {
                   ? "bg-primary text-white shadow-sm"
                   : "text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:shadow-xs active:bg-zinc-200 dark:active:bg-zinc-700"
               )}
+              style={
+                isActive
+                  ? {}
+                  : {
+                      color: "#18181b",
+                      backgroundColor: "transparent",
+                    }
+              }
             >
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              <span className="whitespace-nowrap">{item.label}</span>
+              <Icon className="h-5 w-5 flex-shrink-0" style={{ color: isActive ? "#ffffff" : "#18181b" }} />
+              <span className="whitespace-nowrap" style={{ color: isActive ? "#ffffff" : "#18181b" }}>
+                {item.label}
+              </span>
             </Link>
           )
         })}
