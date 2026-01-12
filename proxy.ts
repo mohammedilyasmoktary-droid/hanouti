@@ -22,6 +22,13 @@ export async function proxy(request: NextRequest) {
           req: request,
           secret,
         })
+        // Debug logging
+        console.log("[Proxy] Token check:", {
+          hasToken: !!token,
+          tokenRole: token?.role,
+          tokenEmail: token?.email,
+          cookieHeader: request.headers.get("cookie")?.substring(0, 100),
+        })
       } catch (e) {
         console.error("[Proxy] Error getting token:", e)
         const loginUrl = new URL("/admin/login", request.url)
@@ -30,6 +37,7 @@ export async function proxy(request: NextRequest) {
       }
 
       if (!token || token.role !== "ADMIN") {
+        console.log("[Proxy] No token or not ADMIN, redirecting to login")
         const loginUrl = new URL("/admin/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
         return NextResponse.redirect(loginUrl)
