@@ -59,60 +59,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 })
     }
 
-    // Convert file to base64 for imgBB (free, no API key needed)
+    // Convert file to base64
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString("base64")
 
-    // Upload to imgBB (completely free, no setup required)
+    // Use freeimage.host API (completely free, no API key needed)
     try {
-      const formData = new FormData()
-      formData.append("image", base64)
-
-      const imgbbResponse = await fetch("https://api.imgbb.com/1/upload?key=2c1b0e5e5e5e5e5e5e5e5e5e5e5e5e5e", {
+      const freeImageResponse = await fetch("https://freeimage.host/api/1/upload", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "6d207e02198a847aa98d0a2a", // Public demo key
+          source: base64,
+          format: "json",
+        }),
       })
 
-      if (imgbbResponse.ok) {
-        const imgbbData = await imgbbResponse.json()
-        if (imgbbData.success && imgbbData.data?.url) {
-          return NextResponse.json({ url: imgbbData.data.url })
+      if (freeImageResponse.ok) {
+        const freeImageData = await freeImageResponse.json()
+        if (freeImageData.image && freeImageData.image.url) {
+          return NextResponse.json({ url: freeImageData.image.url })
         }
       }
-    } catch (imgbbError) {
-      console.error("imgBB upload error:", imgbbError)
+    } catch (freeImageError) {
+      console.error("FreeImage upload error:", freeImageError)
     }
 
-    // Fallback: Try alternative free service (postimages.org)
-    try {
-      const formData2 = new FormData()
-      const blob = new Blob([buffer], { type: file.type })
-      formData2.append("upload", blob, file.name)
-
-      const postImagesResponse = await fetch("https://postimages.org/api/upload", {
-        method: "POST",
-        body: formData2,
-      })
-
-      if (postImagesResponse.ok) {
-        const postImagesData = await postImagesResponse.json()
-        if (postImagesData.url) {
-          return NextResponse.json({ url: postImagesData.url })
-        }
-      }
-    } catch (postImagesError) {
-      console.error("PostImages upload error:", postImagesError)
-    }
-
-    // If all services fail, return helpful error
-    return NextResponse.json(
-      { 
-        error: "Image upload failed. Please use an image URL instead (paste a link to an image from the web).",
-        code: "UPLOAD_SERVICE_UNAVAILABLE"
-      },
-      { status: 503 }
-    )
+    // Fallback: Return data URL (works but images are stored in database)
+    // This is a simple fallback that always works
+    const dataUrl = `data:${file.type};base64,${base64}`
+    
+    // Note: Data URLs work but are large. For production, consider using a proper image hosting service.
+    return NextResponse.json({ url: dataUrl })
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(
