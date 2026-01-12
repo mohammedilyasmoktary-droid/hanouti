@@ -39,9 +39,23 @@ export default async function AdminLayout({
     // But if we get here, show layout anyway (middleware handles auth)
     // Always show the layout with sidebar - middleware protects the routes
     return (
-      <div className="flex min-h-screen bg-muted/50 overflow-x-hidden" style={{ display: "flex !important" }}>
+      <div 
+        className="flex min-h-screen bg-muted/50 overflow-x-hidden" 
+        style={{ 
+          display: "flex !important",
+          flexDirection: "row !important",
+          width: "100%",
+        }}
+      >
         <AdminSidebar />
-        <div className="flex-1 flex flex-col min-w-0" style={{ flex: "1 1 0%", minWidth: 0 }}>
+        <div 
+          className="flex-1 flex flex-col min-w-0" 
+          style={{ 
+            flex: "1 1 0% !important", 
+            minWidth: 0,
+            marginLeft: 0,
+          }}
+        >
           <AdminTopbar />
           <main className="flex-1 p-6 lg:p-8 overflow-auto">{children}</main>
         </div>
