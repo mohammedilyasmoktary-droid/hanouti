@@ -145,9 +145,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
-        if (errorData.code === "CLOUDINARY_NOT_CONFIGURED") {
-          throw new Error("Cloudinary n'est pas configuré. Veuillez configurer les variables d'environnement CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY et CLOUDINARY_API_SECRET.")
-        }
         throw new Error(errorData.error || `Erreur ${res.status}: ${res.statusText}`)
       }
 

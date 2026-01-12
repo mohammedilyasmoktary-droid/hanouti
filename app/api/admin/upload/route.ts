@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
-import { v2 as cloudinary } from "cloudinary"
 
 export async function POST(req: Request) {
   try {
@@ -60,45 +59,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 })
     }
 
-    // Configure Cloudinary
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+    // Convert file to base64 for Imgur
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = buffer.toString("base64")
+
+    // Upload to Imgur (free, no account needed for anonymous uploads)
+    const imgurResponse = await fetch("https://api.imgur.com/3/image", {
+      method: "POST",
+      headers: {
+        "Authorization": `Client-ID ${process.env.IMGUR_CLIENT_ID || "546c10a5c03a309"}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        image: base64,
+        type: "base64",
+      }),
     })
 
-    // Check if Cloudinary is configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    if (!imgurResponse.ok) {
+      const errorData = await imgurResponse.json().catch(() => ({}))
+      console.error("Imgur upload error:", errorData)
       return NextResponse.json(
-        { 
-          error: "Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.",
-          code: "CLOUDINARY_NOT_CONFIGURED"
-        },
+        { error: "Failed to upload image. Please try again or use an image URL instead." },
         { status: 500 }
       )
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Upload to Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "hanouti",
-          resource_type: "image",
-        },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
-        }
+    const imgurData = await imgurResponse.json()
+    
+    if (!imgurData.success || !imgurData.data?.link) {
+      return NextResponse.json(
+        { error: "Failed to upload image. Please try again or use an image URL instead." },
+        { status: 500 }
       )
-      uploadStream.end(buffer)
-    }) as any
+    }
 
-    // Return the secure URL
-    return NextResponse.json({ url: uploadResult.secure_url })
+    // Return the image URL
+    return NextResponse.json({ url: imgurData.data.link })
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(

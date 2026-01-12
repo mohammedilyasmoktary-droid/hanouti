@@ -1,0 +1,28 @@
+RENDER ENVIRONMENT VARIABLES - COPY & PASTE
+
+===========================================
+1. DATABASE_URL
+===========================================
+postgresql://postgres.itvdpoxxlrltuozxqfkd:Hanouti%40%40data@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+
+===========================================
+2. NEXTAUTH_SECRET
+===========================================
+7THuzESkgXNjK64ChCYaLIzkP8BrX1F1ivHWXjF5v9M=
+
+===========================================
+3. AUTH_SECRET
+===========================================
+7THuzESkgXNjK64ChCYaLIzkP8BrX1F1ivHWXjF5v9M=
+
+===========================================
+4. NODE_ENV
+===========================================
+production
+
+===========================================
+5. NEXTAUTH_URL
+===========================================
+(Leave empty for now - update after first deploy with your Render URL)
+Example format: https://hanouti-xxxx.onrender.com
+
