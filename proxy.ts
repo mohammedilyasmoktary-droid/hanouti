@@ -18,16 +18,26 @@ export async function proxy(request: NextRequest) {
 
       let token
       try {
+        // Get all cookies to debug
+        const cookieHeader = request.headers.get("cookie") || ""
+        const allCookies = cookieHeader.split(";").map(c => c.trim())
+        
         token = await getToken({
           req: request,
           secret,
+          cookieName: process.env.NODE_ENV === "production" 
+            ? "__Secure-authjs.session-token" 
+            : "authjs.session-token",
         })
+        
         // Debug logging
         console.log("[Proxy] Token check:", {
           hasToken: !!token,
           tokenRole: token?.role,
           tokenEmail: token?.email,
-          cookieHeader: request.headers.get("cookie")?.substring(0, 100),
+          cookieCount: allCookies.length,
+          hasAuthCookie: allCookies.some(c => c.includes("authjs") || c.includes("session")),
+          cookieNames: allCookies.map(c => c.split("=")[0]).join(", "),
         })
       } catch (e) {
         console.error("[Proxy] Error getting token:", e)
@@ -37,7 +47,10 @@ export async function proxy(request: NextRequest) {
       }
 
       if (!token || token.role !== "ADMIN") {
-        console.log("[Proxy] No token or not ADMIN, redirecting to login")
+        console.log("[Proxy] No token or not ADMIN, redirecting to login", {
+          hasToken: !!token,
+          role: token?.role,
+        })
         const loginUrl = new URL("/admin/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
         return NextResponse.redirect(loginUrl)
