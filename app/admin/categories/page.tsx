@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from "lucide-react"
 import { CategoriesList } from "@/components/admin/categories-list"
 
+export const dynamic = "force-dynamic"
+
 async function getCategories() {
   try {
     // Get all parent categories (categories with no parent)
