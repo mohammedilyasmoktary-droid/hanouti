@@ -6,40 +6,52 @@ import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from "lucide-react"
 import { CategoriesList } from "@/components/admin/categories-list"
 
 async function getCategories() {
-  // Get all parent categories (categories with no parent)
-  const parentCategories = await prisma.category.findMany({
-    where: {
-      parentId: null,
-    },
-    include: {
-      children: {
-        include: {
-          _count: {
-            select: {
-              products: true,
+  try {
+    // Get all parent categories (categories with no parent)
+    const parentCategories = await prisma.category.findMany({
+      where: {
+        parentId: null,
+      },
+      include: {
+        children: {
+          include: {
+            _count: {
+              select: {
+                products: true,
+              },
             },
           },
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
-        orderBy: {
-          sortOrder: "asc",
+        _count: {
+          select: {
+            products: true,
+          },
         },
       },
-      _count: {
-        select: {
-          products: true,
-        },
+      orderBy: {
+        sortOrder: "asc",
       },
-    },
-    orderBy: {
-      sortOrder: "asc",
-    },
-  })
+    })
 
-  return parentCategories
+    return parentCategories
+  } catch (error) {
+    console.error("Error fetching categories:", error)
+    // Return empty array on error to prevent page crash
+    return []
+  }
 }
 
 export default async function AdminCategoriesPage() {
-  const categories = await getCategories()
+  let categories = []
+  try {
+    categories = await getCategories()
+  } catch (error) {
+    console.error("Error in AdminCategoriesPage:", error)
+    // Continue with empty array
+  }
 
   return (
     <div className="space-y-6">
