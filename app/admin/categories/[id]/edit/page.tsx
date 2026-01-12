@@ -4,26 +4,42 @@ import { CategoryForm } from "@/components/admin/category-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 async function getCategory(id: string) {
-  return await prisma.category.findUnique({
-    where: { id },
-  })
+  try {
+    if (!prisma) {
+      return null
+    }
+    return await prisma.category.findUnique({
+      where: { id },
+    })
+  } catch (error) {
+    console.error("Error fetching category:", error)
+    return null
+  }
 }
 
 async function getParentCategories(excludeId: string) {
-  return await prisma.category.findMany({
-    where: {
-      parentId: null,
-      isActive: true,
-      id: { not: excludeId },
-    },
-    orderBy: {
-      sortOrder: "asc",
-    },
-    select: {
-      id: true,
-      nameFr: true,
-    },
-  })
+  try {
+    if (!prisma) {
+      return []
+    }
+    return await prisma.category.findMany({
+      where: {
+        parentId: null,
+        isActive: true,
+        id: { not: excludeId },
+      },
+      orderBy: {
+        sortOrder: "asc",
+      },
+      select: {
+        id: true,
+        nameFr: true,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching parent categories:", error)
+    return []
+  }
 }
 
 export default async function EditCategoryPage({
@@ -31,13 +47,14 @@ export default async function EditCategoryPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const category = await getCategory(id)
-  const parentCategories = category ? await getParentCategories(id) : []
+  try {
+    const { id } = await params
+    const category = await getCategory(id)
+    const parentCategories = category ? await getParentCategories(id) : []
 
-  if (!category) {
-    notFound()
-  }
+    if (!category) {
+      notFound()
+    }
 
   return (
     <div className="space-y-6">
@@ -56,5 +73,17 @@ export default async function EditCategoryPage({
       </Card>
     </div>
   )
+  } catch (error: any) {
+    console.error("Error in EditCategoryPage:", error)
+    // Return a simple error message instead of crashing
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Erreur</h1>
+          <p className="text-muted-foreground mt-1">Impossible de charger la catégorie. Veuillez réessayer.</p>
+        </div>
+      </div>
+    )
+  }
 }
 
