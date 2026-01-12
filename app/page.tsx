@@ -66,6 +66,11 @@ async function getHomepageContent() {
 
 async function getFeaturedCategories(categoryIds?: string[]) {
   try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return []
+    }
+
     const whereClause: any = {
       isActive: true,
       parentId: null, // Top-level categories only
@@ -99,14 +104,20 @@ async function getFeaturedCategories(categoryIds?: string[]) {
     }
 
     return categories
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database error in getFeaturedCategories:", error)
-    return [] // Return empty array on error
+    // Always return empty array to prevent crashes
+    return []
   }
 }
 
 async function getPopularProducts() {
   try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return []
+    }
+
     return await prisma.product.findMany({
       where: {
         isActive: true,
@@ -127,9 +138,10 @@ async function getPopularProducts() {
         stock: true,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database error in getPopularProducts:", error)
-    return [] // Return empty array on error
+    // Always return empty array to prevent crashes
+    return []
   }
 }
 
