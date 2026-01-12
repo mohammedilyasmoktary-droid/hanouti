@@ -21,29 +21,62 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
+      console.log("Attempting login...")
+      
+      // Try direct API call first to see if it works
+      const response = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          email,
+          password,
+          redirect: "false",
+          callbackUrl: "/admin",
+        }),
+      })
+
+      console.log("API response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("API error:", errorData)
+        setError("Email ou mot de passe incorrect")
+        setLoading(false)
+        return
+      }
+
+      // If API call succeeded, try signIn to set cookies properly
+      console.log("API call succeeded, calling signIn...")
+      
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false, // Don't redirect automatically, handle it ourselves
+        redirect: false,
         callbackUrl: "/admin",
       })
 
+      console.log("SignIn result:", result)
+
       if (result?.error) {
+        console.error("SignIn error:", result.error)
         setError("Email ou mot de passe incorrect")
         setLoading(false)
         return
       }
 
       if (result?.ok) {
-        // Success! Force a full page reload to ensure cookies are set
+        console.log("Login successful, redirecting...")
+        // Force full page reload
         window.location.href = "/admin"
         return
       }
 
-      // If we get here, something unexpected happened
-      setError("Une erreur est survenue. Veuillez réessayer.")
-      setLoading(false)
-    } catch (err) {
+      // Fallback: if signIn doesn't work but API did, try redirect anyway
+      console.log("SignIn returned unexpected result, trying redirect anyway...")
+      window.location.href = "/admin"
+    } catch (err: any) {
       console.error("Login error:", err)
       setError("Une erreur est survenue. Veuillez réessayer.")
       setLoading(false)
