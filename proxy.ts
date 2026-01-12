@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl)
       }
 
-      let token
+      let token: any = null
       try {
         // Get all cookies to debug
         const cookieHeader = request.headers.get("cookie") || ""
@@ -29,8 +29,6 @@ export async function proxy(request: NextRequest) {
           "__Secure-next-auth.session-token",
           "next-auth.session-token",
         ]
-        
-        let token = null
         for (const cookieName of cookieNames) {
           try {
             token = await getToken({
@@ -64,10 +62,10 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl)
       }
 
-      if (!token || (token as any).role !== "ADMIN") {
+      if (!token || token.role !== "ADMIN") {
         console.log("[Proxy] No token or not ADMIN, redirecting to login", {
           hasToken: !!token,
-          role: (token as any)?.role,
+          role: token?.role,
         })
         const loginUrl = new URL("/admin/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
