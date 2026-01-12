@@ -19,7 +19,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card shadow-sm">
+    <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border bg-card shadow-sm">
       <div className="flex h-16 items-center border-b border-border px-6">
         <Link href="/admin" className="flex items-center space-x-2 group">
           <span className="text-xl font-bold text-primary group-hover:text-primary/90 transition-colors">Hanouti</span>
