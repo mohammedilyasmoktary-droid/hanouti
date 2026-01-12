@@ -17,6 +17,11 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  
+  // Debug: Log that component is rendering
+  if (typeof window !== "undefined") {
+    console.log("[AdminSidebar] Component is rendering", { pathname })
+  }
 
   return (
     <aside
