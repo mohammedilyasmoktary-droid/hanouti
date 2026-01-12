@@ -18,15 +18,12 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname()
   
-  // Debug: Log that component is rendering
-  if (typeof window !== "undefined") {
-    console.log("[AdminSidebar] Component is rendering", { pathname })
-  }
 
   return (
     <aside
+      className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm"
       style={{
-        backgroundColor: "#ff0000",
+        backgroundColor: "#ffffff",
         display: "flex",
         width: "256px",
         minWidth: "256px",
@@ -35,12 +32,10 @@ export function AdminSidebar() {
         position: "fixed",
         left: 0,
         top: 0,
-        zIndex: 9999,
-        visibility: "visible",
-        opacity: 1,
+        zIndex: 50,
         height: "100vh",
         overflowY: "auto",
-        borderRight: "3px solid #000000",
+        borderRight: "1px solid #e4e4e7",
         flexDirection: "column",
       }}
     >
