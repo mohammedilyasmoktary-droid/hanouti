@@ -41,8 +41,8 @@ export default function AdminLoginPage() {
       }
 
       if (result?.ok) {
-        router.push("/admin")
-        router.refresh()
+        // Force a hard navigation to ensure session is loaded
+        window.location.href = "/admin"
       } else {
         setError("Échec de la connexion. Veuillez vérifier vos identifiants.")
         setLoading(false)
