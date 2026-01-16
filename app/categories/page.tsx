@@ -6,8 +6,9 @@ import { Package } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { CategoryCard } from "@/components/cards/category-card"
 
-// Use ISR - revalidate every 60 seconds for faster page loads
-export const revalidate = 60
+// Use dynamic rendering to avoid oversized ISR pages
+// Page will still be fast due to query limits and caching
+export const dynamic = 'force-dynamic'
 
 async function getCategories() {
   try {

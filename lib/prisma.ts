@@ -23,12 +23,7 @@ function createPrismaClient(): PrismaClient {
           url: optimizedUrl,
         },
       },
-      // Performance optimizations
-      transactionOptions: {
-        timeout: 10000, // 10 second timeout for transactions
-      },
     })
-    
     // Test connection on initialization (skip during build)
     if (process.env.NODE_ENV === "development" && !isBuildTime) {
       client.$connect().catch((err) => {
