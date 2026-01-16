@@ -14,7 +14,7 @@ export const revalidate = 60
 
 async function getCategory(slug: string) {
   try {
-    return await prisma.category.findUnique({
+    const category = await prisma.category.findUnique({
     where: { slug },
     include: {
       parent: {
