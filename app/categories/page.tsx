@@ -17,28 +17,28 @@ async function getCategories() {
       return []
     }
 
-    // Limit to 50 categories for performance
+    // Optimize query - use select instead of include for better performance
+    // Limit to 30 categories and count children instead of loading them all
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
         parentId: null, // Top-level categories only
       },
-      take: 50, // Limit to prevent loading too many categories
-      include: {
-        children: {
-          where: {
-            isActive: true,
-          },
-          take: 20, // Limit children per category
-          orderBy: {
-            sortOrder: "asc",
-          },
+      take: 30, // Reduced to 30 for faster loading
+      select: {
+        id: true,
+        nameFr: true,
+        nameAr: true,
+        slug: true,
+        imageUrl: true,
+        sortOrder: true,
+        _count: {
           select: {
-            id: true,
-            nameFr: true,
-            nameAr: true,
-            slug: true,
-            imageUrl: true,
+            children: {
+              where: {
+                isActive: true,
+              },
+            },
           },
         },
       },
@@ -112,8 +112,8 @@ export default async function CategoriesPage() {
                 <CategoryCard
                   key={category.id}
                   category={category}
-                  showSubcategories={category.children.length > 0}
-                  subcategoryCount={category.children.length}
+                  showSubcategories={(category._count?.children || 0) > 0}
+                  subcategoryCount={category._count?.children || 0}
                 />
               ))}
             </div>
