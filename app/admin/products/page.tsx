@@ -18,7 +18,9 @@ async function getProducts() {
       select: {
         id: true,
         nameFr: true,
+        nameAr: true,
         slug: true,
+        description: true,
         price: true,
         imageUrl: true,
         stock: true,
