@@ -71,7 +71,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Limit to 500 products for performance (admin can paginate if needed)
     const products = await prisma.product.findMany({
+      take: 500, // Limit to prevent loading thousands of products
       include: {
         category: {
           select: {

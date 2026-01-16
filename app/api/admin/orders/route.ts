@@ -9,7 +9,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Limit to 500 orders for performance (admin can paginate if needed)
     const orders = await prisma.order.findMany({
+      take: 500, // Limit to prevent loading thousands of orders
       include: {
         items: {
           include: {

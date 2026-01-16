@@ -58,10 +58,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Limit to 100 categories for performance
     const categories = await prisma.category.findMany({
       where: {
         parentId: null, // Only top-level categories
       },
+      take: 100, // Limit to prevent loading too many categories
       orderBy: {
         sortOrder: "asc",
       },
