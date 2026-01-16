@@ -12,8 +12,13 @@ export const dynamic = 'force-dynamic'
 
 async function getCategories() {
   try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return []
+    }
+
     // Limit to 50 categories for performance
-    return await prisma.category.findMany({
+    const categories = await prisma.category.findMany({
       where: {
         isActive: true,
         parentId: null, // Top-level categories only
@@ -41,10 +46,19 @@ async function getCategories() {
         sortOrder: "asc",
       },
     })
+    
+    return categories
   } catch (error: any) {
-    // Handle errors gracefully
+    // Handle errors gracefully - log in development/production
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
-    if (!isBuildTime) {
+    
+    // Log errors in development or if not a build-time DB error
+    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
       console.error("Error fetching categories:", error)
     }
     return []
@@ -56,8 +70,12 @@ export default async function CategoriesPage() {
   
   try {
     categories = await getCategories()
+    // Log in development if no categories found
+    if (categories.length === 0 && process.env.NODE_ENV === 'development') {
+      console.log("No categories found - check database connection and data")
+    }
   } catch (error: any) {
-    // Silently handle errors during build time - pages will render at runtime
+    // Handle errors gracefully - log in development
     const isDbConnectionError = 
       error?.message?.includes("Can't reach database") ||
       error?.code === 'P1001' ||
@@ -65,9 +83,9 @@ export default async function CategoriesPage() {
     
     const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
     
-    // Only log non-database errors and only outside build time
-    if (!isDbConnectionError && !isBuildTime) {
-      console.error("Error fetching categories:", error)
+    // Log errors in development or if not a build-time DB error
+    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
+      console.error("Error in CategoriesPage:", error)
     }
     // Continue with empty array - page will render with empty state
   }
