@@ -12,13 +12,8 @@ import { AddToCartButton } from "@/components/cart/add-to-cart-button"
 export const revalidate = 60
 
 async function getProduct(slug: string) {
-  // During build, database may not be available - return null
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
-  if (isBuildTime && !process.env.DATABASE_URL) {
-    return null
-  }
-
-  return await prisma.product.findUnique({
+  try {
+    return await prisma.product.findUnique({
     where: { slug },
     include: {
       category: {
@@ -30,6 +25,14 @@ async function getProduct(slug: string) {
       },
     },
   })
+  } catch (error: any) {
+    // Handle errors gracefully - return null to trigger 404
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    if (!isBuildTime) {
+      console.error("Error fetching product:", error)
+    }
+    return null
+  }
 }
 
 export default async function ProductPage({

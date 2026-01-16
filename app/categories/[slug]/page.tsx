@@ -13,13 +13,8 @@ import { Container } from "@/components/ui/container"
 export const revalidate = 60
 
 async function getCategory(slug: string) {
-  // During build, database may not be available - return null
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
-  if (isBuildTime && !process.env.DATABASE_URL) {
-    return null
-  }
-
-  return await prisma.category.findUnique({
+  try {
+    return await prisma.category.findUnique({
     where: { slug },
     include: {
       parent: {
@@ -62,6 +57,14 @@ async function getCategory(slug: string) {
       },
     },
   })
+  } catch (error: any) {
+    // Handle errors gracefully - return null to trigger 404
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    if (!isBuildTime) {
+      console.error("Error fetching category:", error)
+    }
+    return null
+  }
 }
 
 export default async function CategoryPage({

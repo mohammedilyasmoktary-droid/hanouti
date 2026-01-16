@@ -10,13 +10,8 @@ import { CategoryCard } from "@/components/cards/category-card"
 export const revalidate = 60
 
 async function getCategories() {
-  // During build, database may not be available - silently return empty
-  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
-  if (isBuildTime && !process.env.DATABASE_URL) {
-    return []
-  }
-
-  return await prisma.category.findMany({
+  try {
+    return await prisma.category.findMany({
     where: {
       isActive: true,
       parentId: null, // Top-level categories only
@@ -42,6 +37,14 @@ async function getCategories() {
       sortOrder: "asc",
     },
   })
+  } catch (error: any) {
+    // Handle errors gracefully
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    if (!isBuildTime) {
+      console.error("Error fetching categories:", error)
+    }
+    return []
+  }
 }
 
 export default async function CategoriesPage() {
