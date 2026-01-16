@@ -11,11 +11,9 @@ import { CategoryCard } from "@/components/cards/category-card"
 import { ProductCard } from "@/components/cart/product-card"
 import { Card, CardContent } from "@/components/ui/card"
 
-// Use dynamic rendering to avoid oversized ISR pages
-// The page will be fast due to caching headers in API routes
-export const dynamic = 'force-dynamic'
-export const revalidate = 0 // Disable ISR completely
-export const fetchCache = 'force-no-store' // Don't cache fetches
+// Use ISR with 60s revalidation for better performance
+// Page is optimized to stay under Vercel's size limits
+export const revalidate = 60
 
 async function getHomepageContent() {
   try {
@@ -92,10 +90,10 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       whereClause.id = { in: categoryIds }
     }
 
-    // Limit to maximum 8 categories to reduce page size
+    // Limit to maximum 4 categories to reduce page size and keep under Vercel limits
     const maxCategories = (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0)
-      ? Math.min(categoryIds.length, 8) 
-      : 8
+      ? Math.min(categoryIds.length, 4) 
+      : 4
 
     const categories = await prisma.category.findMany({
       where: whereClause,
@@ -158,7 +156,7 @@ async function getPopularProducts() {
           gt: 0, // Only products in stock
         },
       },
-      take: 8, // Reduced from potential larger queries
+      take: 4, // Limited to 4 products to reduce page size
       orderBy: {
         createdAt: "desc", // Latest products first
       },
