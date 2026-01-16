@@ -14,6 +14,8 @@ import { Card, CardContent } from "@/components/ui/card"
 // Use dynamic rendering to avoid oversized ISR pages
 // The page will be fast due to caching headers in API routes
 export const dynamic = 'force-dynamic'
+export const revalidate = 0 // Disable ISR completely
+export const fetchCache = 'force-no-store' // Don't cache fetches
 
 async function getHomepageContent() {
   try {
