@@ -11,8 +11,9 @@ import { CategoryCard } from "@/components/cards/category-card"
 import { ProductCard } from "@/components/cart/product-card"
 import { Card, CardContent } from "@/components/ui/card"
 
-// Use ISR for better performance - revalidate every 60 seconds
-export const revalidate = 60
+// Use dynamic rendering to avoid oversized ISR pages
+// The page will be fast due to caching headers in API routes
+export const dynamic = 'force-dynamic'
 
 async function getHomepageContent() {
   try {
@@ -95,9 +96,14 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       whereClause.id = { in: categoryIds }
     }
 
+    // Limit to maximum 8 categories to reduce page size
+    const maxCategories = categoryIds && categoryIds.length > 0 
+      ? Math.min(categoryIds.length, 8) 
+      : 8
+
     const categories = await prisma.category.findMany({
       where: whereClause,
-      take: categoryIds && categoryIds.length > 0 ? undefined : 8, // Only limit if no IDs specified
+      take: maxCategories,
       orderBy: {
         sortOrder: "asc",
       },
@@ -138,6 +144,7 @@ async function getPopularProducts() {
       return []
     }
 
+    // Limit to 8 products with minimal data to reduce page size
     return await prisma.product.findMany({
       where: {
         isActive: true,
@@ -145,7 +152,7 @@ async function getPopularProducts() {
           gt: 0, // Only products in stock
         },
       },
-      take: 8,
+      take: 8, // Reduced from potential larger queries
       orderBy: {
         createdAt: "desc", // Latest products first
       },
@@ -155,7 +162,7 @@ async function getPopularProducts() {
         slug: true,
         price: true,
         imageUrl: true,
-        stock: true,
+        // Remove stock from select - not needed for display
       },
     })
   } catch (error: any) {
@@ -362,7 +369,6 @@ export default async function HomePage() {
                       nameFr: product.nameFr,
                       price: Number(product.price),
                       imageUrl: product.imageUrl,
-                      stock: product.stock,
                     }}
                   />
                 ))}
