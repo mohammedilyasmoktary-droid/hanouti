@@ -72,22 +72,37 @@ async function getCategory(slug: string) {
     const allCategoryIds = [category.id, ...subcategoryIds]
     
     // Fetch products from this category and all its subcategories
-    const allProducts = await prisma.product.findMany({
-      where: {
-        categoryId: { in: allCategoryIds },
-        isActive: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        id: true,
-        nameFr: true,
-        slug: true,
-        price: true,
-        imageUrl: true,
-      },
-    })
+    let allProducts = category.products || []
+    
+    // Only fetch additional products if there are subcategories
+    if (subcategoryIds.length > 0) {
+      try {
+        const subcategoryProducts = await prisma.product.findMany({
+          where: {
+            categoryId: { in: subcategoryIds },
+            isActive: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            id: true,
+            nameFr: true,
+            slug: true,
+            price: true,
+            imageUrl: true,
+          },
+        })
+        
+        // Combine products, avoiding duplicates
+        const existingProductIds = new Set(allProducts.map(p => p.id))
+        const uniqueSubcategoryProducts = subcategoryProducts.filter(p => !existingProductIds.has(p.id))
+        allProducts = [...allProducts, ...uniqueSubcategoryProducts]
+      } catch (error: any) {
+        // If fetching subcategory products fails, just use parent category products
+        console.error("Error fetching subcategory products:", error)
+      }
+    }
     
     // Return category with combined products
     return {
