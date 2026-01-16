@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,7 @@ import { Package } from "lucide-react"
 import Link from "next/link"
 import { AddToCartButton } from "@/components/cart/add-to-cart-button"
 
+// Use ISR - revalidate every 60 seconds for faster page loads
 export const revalidate = 60
 
 async function getProduct(slug: string) {
@@ -60,11 +62,14 @@ export default async function ProductPage({
             {/* Product Image */}
             <div>
               {product.imageUrl ? (
-                <div className="aspect-square rounded-xl overflow-hidden bg-muted shadow-md">
-                  <img
+                <div className="aspect-square rounded-xl overflow-hidden bg-muted shadow-md relative">
+                  <Image
                     src={product.imageUrl}
                     alt={product.nameFr}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority
                   />
                 </div>
               ) : (

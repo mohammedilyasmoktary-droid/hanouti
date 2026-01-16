@@ -34,6 +34,10 @@ model Category {
   products  Product[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([isActive, sortOrder])
+  @@index([slug])
 }
 
 model Product {
@@ -51,6 +55,11 @@ model Product {
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive, stock])
+  @@index([slug])
+  @@index([createdAt])
 }
 
 model Order {

@@ -6,7 +6,8 @@ import { Package } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { CategoryCard } from "@/components/cards/category-card"
 
-export const dynamic = "force-dynamic"
+// Use ISR - revalidate every 60 seconds for faster page loads
+export const revalidate = 60
 
 async function getCategories() {
   return await prisma.category.findMany({

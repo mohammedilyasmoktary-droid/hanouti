@@ -24,10 +24,19 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(contentMap)
+    return NextResponse.json(contentMap, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    })
   } catch (error) {
     console.error("Error fetching homepage content:", error)
-    return NextResponse.json({}, { status: 200 }) // Return empty object on error, homepage will use defaults
+    return NextResponse.json({}, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    }) // Return empty object on error, homepage will use defaults
   }
 }
 

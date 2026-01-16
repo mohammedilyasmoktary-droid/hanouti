@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import Image from "next/image"
 import { Search, ArrowRight, Zap, Shield, CreditCard, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
@@ -10,7 +11,8 @@ import { CategoryCard } from "@/components/cards/category-card"
 import { ProductCard } from "@/components/cart/product-card"
 import { Card, CardContent } from "@/components/ui/card"
 
-export const dynamic = "force-dynamic"
+// Use ISR for better performance - revalidate every 60 seconds
+export const revalidate = 60
 
 async function getHomepageContent() {
   try {

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
@@ -46,10 +47,13 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
       <Link href={`/products/${product.slug}`} className="block">
         <div className="aspect-square bg-zinc-50 overflow-hidden relative">
           {product.imageUrl ? (
-            <img
+            <Image
               src={product.imageUrl}
               alt={product.nameFr}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-zinc-100">

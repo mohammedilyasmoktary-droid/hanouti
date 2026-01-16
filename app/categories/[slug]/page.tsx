@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import { Package, ShoppingCart, ChevronRight } from "lucide-react"
 import { ProductCard } from "@/components/cart/product-card"
 import { Container } from "@/components/ui/container"
 
+// Use ISR - revalidate every 60 seconds for faster page loads
 export const revalidate = 60
 
 async function getCategory(slug: string) {
@@ -103,11 +105,14 @@ export default async function CategoryPage({
             {/* Right: Small Category Image Thumbnail */}
             {category.imageUrl && (
               <div className="flex-shrink-0">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-200/60 shadow-sm">
-                  <img
+                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-200/60 shadow-sm relative">
+                  <Image
                     src={category.imageUrl}
                     alt={category.nameFr}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 128px, 160px"
+                    priority
                   />
                 </div>
               </div>
@@ -129,11 +134,13 @@ export default async function CategoryPage({
                   >
                     <div className="bg-white border border-zinc-200/60 rounded-xl p-3 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/30 transition-all text-center shadow-sm">
                       {child.imageUrl ? (
-                        <div className="aspect-square w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden bg-zinc-50">
-                          <img
+                        <div className="aspect-square w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden bg-zinc-50 relative">
+                          <Image
                             src={child.imageUrl}
                             alt={child.nameFr}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="64px"
                           />
                         </div>
                       ) : (

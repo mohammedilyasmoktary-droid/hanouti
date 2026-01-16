@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -33,10 +34,13 @@ export function CategoryCard({
         {/* Image Container - Fixed Aspect Ratio */}
         <div className="aspect-[4/3] bg-zinc-50 overflow-hidden relative">
           {category.imageUrl ? (
-            <img
+            <Image
               src={category.imageUrl}
               alt={category.nameFr}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-zinc-100">

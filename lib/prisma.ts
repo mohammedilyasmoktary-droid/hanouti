@@ -8,6 +8,12 @@ function createPrismaClient(): PrismaClient {
   try {
     const client = new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      // Optimize connection pooling for production
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
     })
     // Test connection on initialization
     if (process.env.NODE_ENV === "development") {
