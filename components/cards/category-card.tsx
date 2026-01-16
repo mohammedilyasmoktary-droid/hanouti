@@ -38,12 +38,12 @@ export function CategoryCard({
               src={category.imageUrl}
               alt={category.nameFr}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-zinc-100">
+            <div className="w-full h-full flex items-center justify-center bg-zinc-100 pointer-events-none">
               <Package className="h-10 w-10 text-zinc-400" />
             </div>
           )}
