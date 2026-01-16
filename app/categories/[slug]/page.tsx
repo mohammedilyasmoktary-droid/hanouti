@@ -48,7 +48,6 @@ async function getCategory(slug: string) {
           where: {
             isActive: true,
           },
-          take: 20,
           orderBy: {
             createdAt: "desc",
           },
@@ -68,7 +67,33 @@ async function getCategory(slug: string) {
       return null
     }
     
-    return category
+    // Get all subcategory IDs to fetch products from subcategories
+    const subcategoryIds = category.children.map(child => child.id)
+    const allCategoryIds = [category.id, ...subcategoryIds]
+    
+    // Fetch products from this category and all its subcategories
+    const allProducts = await prisma.product.findMany({
+      where: {
+        categoryId: { in: allCategoryIds },
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        nameFr: true,
+        slug: true,
+        price: true,
+        imageUrl: true,
+      },
+    })
+    
+    // Return category with combined products
+    return {
+      ...category,
+      products: allProducts,
+    }
   } catch (error: any) {
     // Handle errors gracefully - return null to trigger 404
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
