@@ -14,6 +14,11 @@ export const revalidate = 60
 
 async function getCategory(slug: string) {
   try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return null
+    }
+
     const category = await prisma.category.findUnique({
       where: { slug },
       include: {
@@ -84,6 +89,10 @@ export default async function CategoryPage({
 
   try {
     category = await getCategory(slug)
+    // Log if category not found (for debugging)
+    if (!category && process.env.NODE_ENV === 'development') {
+      console.log(`Category with slug "${slug}" not found`)
+    }
   } catch (error: any) {
     // Handle database connection errors during build
     const isDbConnectionError = 
@@ -93,8 +102,10 @@ export default async function CategoryPage({
     
     const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
     
-    // Only log non-database errors and only outside build time
-    if (!isDbConnectionError && !isBuildTime) {
+    // Log all errors in development for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching category:", error)
+    } else if (!isDbConnectionError && !isBuildTime) {
       console.error("Error fetching category:", error)
     }
     // If category not found or error, show 404
