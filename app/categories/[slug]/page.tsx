@@ -15,48 +15,55 @@ export const revalidate = 60
 async function getCategory(slug: string) {
   try {
     const category = await prisma.category.findUnique({
-    where: { slug },
-    include: {
-      parent: {
-        select: {
-          id: true,
-          nameFr: true,
-          slug: true,
+      where: { slug },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            nameFr: true,
+            slug: true,
+          },
+        },
+        children: {
+          where: {
+            isActive: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
+          select: {
+            id: true,
+            nameFr: true,
+            nameAr: true,
+            slug: true,
+            imageUrl: true,
+          },
+        },
+        products: {
+          where: {
+            isActive: true,
+          },
+          take: 20,
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            id: true,
+            nameFr: true,
+            slug: true,
+            price: true,
+            imageUrl: true,
+          },
         },
       },
-      children: {
-        where: {
-          isActive: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
-        },
-        select: {
-          id: true,
-          nameFr: true,
-          nameAr: true,
-          slug: true,
-          imageUrl: true,
-        },
-      },
-      products: {
-        where: {
-          isActive: true,
-        },
-        take: 20,
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          id: true,
-          nameFr: true,
-          slug: true,
-          price: true,
-          imageUrl: true,
-        },
-      },
-    },
-  })
+    })
+    
+    // Check if category exists and is active
+    if (!category || !category.isActive) {
+      return null
+    }
+    
+    return category
   } catch (error: any) {
     // Handle errors gracefully - return null to trigger 404
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
