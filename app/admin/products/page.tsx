@@ -6,24 +6,38 @@ import { Plus, Package } from "lucide-react"
 import { ProductsList } from "@/components/admin/products-list"
 
 async function getProducts() {
-  return await prisma.product.findMany({
-    include: {
-      category: {
-        select: {
-          id: true,
-          nameFr: true,
-          slug: true,
+  try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return []
+    }
+    
+    return await prisma.product.findMany({
+      include: {
+        category: {
+          select: {
+            id: true,
+            nameFr: true,
+            slug: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+  } catch (error: any) {
+    console.error("Error fetching products:", error)
+    // Return empty array to prevent page crash
+    return []
+  }
 }
 
+// Force dynamic rendering for admin pages to always get fresh data
+export const dynamic = 'force-dynamic'
+
 export default async function AdminProductsPage() {
-  const products = await getProducts()
+  let products = await getProducts()
 
   // Convert Decimal to number for client component
   const productsWithNumbers = products.map((product) => ({
