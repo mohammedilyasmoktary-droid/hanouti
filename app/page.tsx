@@ -23,6 +23,12 @@ async function getHomepageContent() {
       return {}
     }
 
+    // During build, database may not be available - silently return empty
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+    if (isBuildTime && !process.env.DATABASE_URL) {
+      return {}
+    }
+
     // Try to access the model - if it doesn't exist, this will throw
     // We catch it and return empty object
     const contents = await prisma.homepageContent.findMany({
@@ -73,6 +79,12 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       return []
     }
 
+    // During build, database may not be available - silently return empty
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+    if (isBuildTime && !process.env.DATABASE_URL) {
+      return []
+    }
+
     const whereClause: any = {
       isActive: true,
       parentId: null, // Top-level categories only
@@ -117,6 +129,12 @@ async function getPopularProducts() {
   try {
     if (!prisma) {
       console.warn("Prisma client not available")
+      return []
+    }
+
+    // During build, database may not be available - silently return empty
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+    if (isBuildTime && !process.env.DATABASE_URL) {
       return []
     }
 
@@ -165,7 +183,10 @@ export default async function HomePage() {
       error?.code === 'P1001' ||
       error?.name === 'PrismaClientInitializationError'
     
-    if (!isDbConnectionError) {
+    const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
+    
+    // Only log non-database errors and only outside build time
+    if (!isDbConnectionError && !isBuildTime) {
       console.error("Error fetching data:", error)
       if (error?.message) {
         console.error("Error message:", error.message)

@@ -10,6 +10,12 @@ import { CategoryCard } from "@/components/cards/category-card"
 export const revalidate = 60
 
 async function getCategories() {
+  // During build, database may not be available - silently return empty
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+  if (isBuildTime && !process.env.DATABASE_URL) {
+    return []
+  }
+
   return await prisma.category.findMany({
     where: {
       isActive: true,
@@ -50,7 +56,10 @@ export default async function CategoriesPage() {
       error?.code === 'P1001' ||
       error?.name === 'PrismaClientInitializationError'
     
-    if (!isDbConnectionError) {
+    const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
+    
+    // Only log non-database errors and only outside build time
+    if (!isDbConnectionError && !isBuildTime) {
       console.error("Error fetching categories:", error)
     }
     // Continue with empty array - page will render with empty state

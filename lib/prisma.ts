@@ -6,8 +6,12 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient(): PrismaClient {
   try {
+    // During build, suppress all logs to prevent error noise
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                        process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1'
+    
     const client = new PrismaClient({
-      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      log: isBuildTime ? [] : (process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]),
       // Optimize connection pooling for production
       datasources: {
         db: {
@@ -15,8 +19,8 @@ function createPrismaClient(): PrismaClient {
         },
       },
     })
-    // Test connection on initialization
-    if (process.env.NODE_ENV === "development") {
+    // Test connection on initialization (skip during build)
+    if (process.env.NODE_ENV === "development" && !isBuildTime) {
       client.$connect().catch((err) => {
         console.warn("Prisma connection warning:", err)
       })
