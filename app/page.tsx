@@ -82,24 +82,18 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       return []
     }
 
-    // During build, database may not be available - silently return empty
-    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
-    if (isBuildTime && !process.env.DATABASE_URL) {
-      return []
-    }
-
     const whereClause: any = {
       isActive: true,
       parentId: null, // Top-level categories only
     }
 
-    // If category IDs are provided, use them; otherwise, take first 8
-    if (categoryIds && categoryIds.length > 0) {
+    // If category IDs are provided and not empty, use them; otherwise, take first 8
+    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
       whereClause.id = { in: categoryIds }
     }
 
     // Limit to maximum 8 categories to reduce page size
-    const maxCategories = categoryIds && categoryIds.length > 0 
+    const maxCategories = (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0)
       ? Math.min(categoryIds.length, 8) 
       : 8
 
@@ -118,8 +112,8 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       },
     })
 
-    // If category IDs are provided, sort them in the order specified
-    if (categoryIds && categoryIds.length > 0) {
+    // If category IDs are provided and not empty, sort them in the order specified
+    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
       return categoryIds
         .map((id) => categories.find((cat) => cat.id === id))
         .filter((cat): cat is NonNullable<typeof cat> => cat !== undefined)
@@ -127,7 +121,17 @@ async function getFeaturedCategories(categoryIds?: string[]) {
 
     return categories
   } catch (error: any) {
-    console.error("Database error in getFeaturedCategories:", error)
+    // Handle errors gracefully - only log if not a build-time database error
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    
+    if (!isDbConnectionError && !isBuildTime) {
+      console.error("Database error in getFeaturedCategories:", error)
+    }
     // Always return empty array to prevent crashes
     return []
   }
@@ -181,7 +185,9 @@ export default async function HomePage() {
 
   try {
     homepageContent = await getHomepageContent()
+    // Get categoryIds from homepage content, but ensure we always fetch categories if none specified
     const categoryIds = homepageContent.categories?.categoryIds
+    // Always fetch categories - if categoryIds is empty/undefined, it will fetch first 8
     featuredCategories = await getFeaturedCategories(categoryIds)
     popularProducts = await getPopularProducts()
   } catch (error: any) {
