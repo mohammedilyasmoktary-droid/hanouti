@@ -39,7 +39,22 @@ async function getCategories() {
 }
 
 export default async function CategoriesPage() {
-  const categories = await getCategories()
+  let categories: Awaited<ReturnType<typeof getCategories>> = []
+  
+  try {
+    categories = await getCategories()
+  } catch (error: any) {
+    // Silently handle errors during build time - pages will render at runtime
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    if (!isDbConnectionError) {
+      console.error("Error fetching categories:", error)
+    }
+    // Continue with empty array - page will render with empty state
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">

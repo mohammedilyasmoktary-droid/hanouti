@@ -158,15 +158,20 @@ export default async function HomePage() {
     featuredCategories = await getFeaturedCategories(categoryIds)
     popularProducts = await getPopularProducts()
   } catch (error: any) {
-    console.error("Error fetching data:", error)
-    // Log detailed error for debugging
-    if (error?.message) {
-      console.error("Error message:", error.message)
+    // Silently handle errors during build time - pages will render at runtime
+    // Check if it's a database connection error (common during build)
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    if (!isDbConnectionError) {
+      console.error("Error fetching data:", error)
+      if (error?.message) {
+        console.error("Error message:", error.message)
+      }
     }
-    if (error?.stack) {
-      console.error("Error stack:", error.stack)
-    }
-    // Continue with empty arrays if database error
+    // Continue with empty arrays if database error - page will render with empty state
   }
 
   // Get content for each section with defaults

@@ -64,7 +64,23 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const category = await getCategory(slug)
+  let category: Awaited<ReturnType<typeof getCategory>> | null = null
+
+  try {
+    category = await getCategory(slug)
+  } catch (error: any) {
+    // Handle database connection errors during build
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    if (!isDbConnectionError) {
+      console.error("Error fetching category:", error)
+    }
+    // If category not found or error, show 404
+    category = null
+  }
 
   if (!category) {
     notFound()

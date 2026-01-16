@@ -32,7 +32,23 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const product = await getProduct(slug)
+  let product: Awaited<ReturnType<typeof getProduct>> | null = null
+
+  try {
+    product = await getProduct(slug)
+  } catch (error: any) {
+    // Handle database connection errors during build
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    if (!isDbConnectionError) {
+      console.error("Error fetching product:", error)
+    }
+    // If product not found or error, show 404
+    product = null
+  }
 
   if (!product) {
     notFound()

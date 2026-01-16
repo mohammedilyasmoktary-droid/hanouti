@@ -23,14 +23,10 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Optimize production builds
-  swcMinify: true,
-  
   // Enable React strict mode for better performance
   reactStrictMode: true,
   
-  // Optimize fonts
-  optimizeFonts: true,
+  // Note: swcMinify and optimizeFonts are enabled by default in Next.js 16
   
   // Experimental features for better performance
   experimental: {
