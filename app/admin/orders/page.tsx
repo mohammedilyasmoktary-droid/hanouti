@@ -3,30 +3,44 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Package } from "lucide-react"
 import { OrdersList } from "@/components/admin/orders-list"
 
+// Force dynamic rendering for admin pages to always get fresh data
+export const dynamic = 'force-dynamic'
+
 async function getOrders() {
-  return await prisma.order.findMany({
-    include: {
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              nameFr: true,
-              slug: true,
-              imageUrl: true,
+  try {
+    if (!prisma) {
+      console.warn("Prisma client not available")
+      return []
+    }
+    
+    return await prisma.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                nameFr: true,
+                slug: true,
+                imageUrl: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+  } catch (error: any) {
+    console.error("Error fetching orders:", error)
+    // Return empty array to prevent page crash
+    return []
+  }
 }
 
 export default async function AdminOrdersPage() {
-  const orders = await getOrders()
+  let orders = await getOrders()
 
   // Convert Decimal to number and Date to string for client component
   const ordersWithNumbers = orders.map((order) => ({
@@ -41,7 +55,7 @@ export default async function AdminOrdersPage() {
     })),
   }))
 
-  const pendingCount = orders.filter((o) => o.status === "PENDING").length
+  // Calculate today's count before converting dates to strings
   const todayCount = orders.filter((o) => {
     const today = new Date()
     const orderDate = new Date(o.createdAt)
@@ -51,6 +65,8 @@ export default async function AdminOrdersPage() {
       orderDate.getFullYear() === today.getFullYear()
     )
   }).length
+  
+  const pendingCount = orders.filter((o) => o.status === "PENDING").length
 
   return (
     <div className="space-y-6">
