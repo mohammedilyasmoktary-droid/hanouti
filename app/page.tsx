@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { cache } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Search, ArrowRight, Zap, Shield, CreditCard, Sparkles } from "lucide-react"
@@ -73,7 +74,12 @@ async function getHomepageContent() {
   }
 }
 
-async function getFeaturedCategories(categoryIds?: string[]) {
+// Cache the query for request-level memoization
+const getFeaturedCategoriesCached = cache(async (categoryIds?: string[]) => {
+  return await getFeaturedCategoriesInternal(categoryIds)
+})
+
+async function getFeaturedCategoriesInternal(categoryIds?: string[]) {
   try {
     if (!prisma) {
       console.warn("Prisma client not available")
@@ -136,7 +142,12 @@ async function getFeaturedCategories(categoryIds?: string[]) {
   }
 }
 
-async function getPopularProducts() {
+// Cache the query for request-level memoization
+const getPopularProductsCached = cache(async () => {
+  return await getPopularProductsInternal()
+})
+
+async function getPopularProductsInternal() {
   try {
     if (!prisma) {
       console.warn("Prisma client not available")
@@ -180,6 +191,15 @@ async function getPopularProducts() {
     // Always return empty array to prevent crashes
     return []
   }
+}
+
+// Export cached functions for type inference
+async function getFeaturedCategories(categoryIds?: string[]) {
+  return getFeaturedCategoriesCached(categoryIds)
+}
+
+async function getPopularProducts() {
+  return getPopularProductsCached()
 }
 
 export default async function HomePage() {

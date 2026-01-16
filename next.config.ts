@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
   
   // Note: swcMinify and optimizeFonts are enabled by default in Next.js 16
   
+  // External packages for server components (moved from experimental)
+  serverExternalPackages: ['@prisma/client'],
+  
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],

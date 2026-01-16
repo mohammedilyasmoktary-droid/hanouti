@@ -10,12 +10,17 @@ function createPrismaClient(): PrismaClient {
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
                         process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1'
     
+    // Optimize connection pooling for production
+    const databaseUrl = process.env.DATABASE_URL
+    const optimizedUrl = databaseUrl?.includes('pooler') 
+      ? databaseUrl 
+      : databaseUrl // Use existing URL if no pooler
+    
     const client = new PrismaClient({
       log: isBuildTime ? [] : (process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]),
-      // Optimize connection pooling for production
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: optimizedUrl,
         },
       },
     })
