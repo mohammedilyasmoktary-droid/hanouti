@@ -48,6 +48,7 @@ async function getCategory(slug: string) {
           where: {
             isActive: true,
           },
+          take: 50, // Limit to 50 products per category for performance
           orderBy: {
             createdAt: "desc",
           },
@@ -82,6 +83,7 @@ async function getCategory(slug: string) {
             categoryId: { in: subcategoryIds },
             isActive: true,
           },
+          take: 100, // Limit to 100 total products from subcategories
           orderBy: {
             createdAt: "desc",
           },

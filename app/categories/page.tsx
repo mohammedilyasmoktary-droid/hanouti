@@ -11,32 +11,35 @@ export const revalidate = 60
 
 async function getCategories() {
   try {
+    // Limit to 50 categories for performance
     return await prisma.category.findMany({
-    where: {
-      isActive: true,
-      parentId: null, // Top-level categories only
-    },
-    include: {
-      children: {
-        where: {
-          isActive: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
-        },
-        select: {
-          id: true,
-          nameFr: true,
-          nameAr: true,
-          slug: true,
-          imageUrl: true,
+      where: {
+        isActive: true,
+        parentId: null, // Top-level categories only
+      },
+      take: 50, // Limit to prevent loading too many categories
+      include: {
+        children: {
+          where: {
+            isActive: true,
+          },
+          take: 20, // Limit children per category
+          orderBy: {
+            sortOrder: "asc",
+          },
+          select: {
+            id: true,
+            nameFr: true,
+            nameAr: true,
+            slug: true,
+            imageUrl: true,
+          },
         },
       },
-    },
-    orderBy: {
-      sortOrder: "asc",
-    },
-  })
+      orderBy: {
+        sortOrder: "asc",
+      },
+    })
   } catch (error: any) {
     // Handle errors gracefully
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL

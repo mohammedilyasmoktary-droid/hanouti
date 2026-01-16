@@ -13,7 +13,9 @@ async function getOrders() {
       return []
     }
     
+    // Limit to 100 orders per page for performance
     return await prisma.order.findMany({
+      take: 100, // Limit to prevent loading thousands of orders
       include: {
         items: {
           include: {

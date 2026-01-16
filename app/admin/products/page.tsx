@@ -12,8 +12,18 @@ async function getProducts() {
       return []
     }
     
+    // Limit to 100 products per page for performance
     return await prisma.product.findMany({
-      include: {
+      take: 100, // Limit to prevent loading thousands of products
+      select: {
+        id: true,
+        nameFr: true,
+        slug: true,
+        price: true,
+        imageUrl: true,
+        stock: true,
+        isActive: true,
+        createdAt: true,
         category: {
           select: {
             id: true,

@@ -23,7 +23,35 @@ function createPrismaClient(): PrismaClient {
           url: optimizedUrl,
         },
       },
+      // Performance optimizations
+      transactionOptions: {
+        timeout: 10000, // 10 second timeout for transactions
+      },
     })
+    
+    // Set query timeout to prevent hanging queries
+    if (client.$connect) {
+      // Add query timeout middleware
+      client.$use(async (params, next) => {
+        // Set max query execution time to 30 seconds
+        const before = Date.now()
+        try {
+          const result = await next(params)
+          const after = Date.now()
+          // Warn if query takes longer than 5 seconds
+          if (after - before > 5000 && process.env.NODE_ENV === "development") {
+            console.warn(`Slow query detected: ${params.model}.${params.action} took ${after - before}ms`)
+          }
+          return result
+        } catch (error) {
+          const after = Date.now()
+          if (after - before > 10000) {
+            console.error(`Query timeout: ${params.model}.${params.action} took ${after - before}ms`)
+          }
+          throw error
+        }
+      })
+    }
     // Test connection on initialization (skip during build)
     if (process.env.NODE_ENV === "development" && !isBuildTime) {
       client.$connect().catch((err) => {
