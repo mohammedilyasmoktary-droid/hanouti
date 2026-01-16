@@ -85,7 +85,7 @@ async function getFeaturedCategories(categoryIds?: string[]) {
       parentId: null, // Top-level categories only
     }
 
-    // If category IDs are provided and not empty, use them; otherwise, take first 8
+    // If category IDs are provided and not empty, use them; otherwise, fetch all
     if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
       whereClause.id = { in: categoryIds }
     }
@@ -119,7 +119,7 @@ async function getFeaturedCategories(categoryIds?: string[]) {
 
     return categories
   } catch (error: any) {
-    // Handle errors gracefully - only log if not a build-time database error
+    // Handle errors gracefully - log errors in development/production
     const isDbConnectionError = 
       error?.message?.includes("Can't reach database") ||
       error?.code === 'P1001' ||
@@ -127,7 +127,8 @@ async function getFeaturedCategories(categoryIds?: string[]) {
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
     
-    if (!isDbConnectionError && !isBuildTime) {
+    // Log errors in development or if not a build-time DB error
+    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
       console.error("Database error in getFeaturedCategories:", error)
     }
     // Always return empty array to prevent crashes
@@ -142,14 +143,8 @@ async function getPopularProducts() {
       return []
     }
 
-    // During build, database may not be available - silently return empty
-    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
-    if (isBuildTime && !process.env.DATABASE_URL) {
-      return []
-    }
-
-    // Limit to 8 products with minimal data to reduce page size
-    return await prisma.product.findMany({
+    // Fetch products - limit to 4 to reduce page size
+    const products = await prisma.product.findMany({
       where: {
         isActive: true,
         stock: {
@@ -166,11 +161,22 @@ async function getPopularProducts() {
         slug: true,
         price: true,
         imageUrl: true,
-        // Remove stock from select - not needed for display
       },
     })
+    
+    return products
   } catch (error: any) {
-    console.error("Database error in getPopularProducts:", error)
+    // Handle errors gracefully - only log if not a build-time database error
+    const isDbConnectionError = 
+      error?.message?.includes("Can't reach database") ||
+      error?.code === 'P1001' ||
+      error?.name === 'PrismaClientInitializationError'
+    
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    
+    if (!isDbConnectionError && !isBuildTime) {
+      console.error("Database error in getPopularProducts:", error)
+    }
     // Always return empty array to prevent crashes
     return []
   }
