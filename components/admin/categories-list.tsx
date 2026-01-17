@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Edit, Trash2, Eye, EyeOff, Package } from "lucide-react"
 import {
   Dialog,
@@ -155,6 +156,20 @@ export function CategoriesList({ initialCategories }: { initialCategories: Categ
     } catch (error) {
       console.error("Error toggling category:", error)
     }
+  }
+
+  if (categories.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <Package className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Aucune catégorie</h2>
+          <p className="text-muted-foreground text-center max-w-md mb-6">
+            Vous n&apos;avez pas encore de catégories. Commencez par créer votre première catégorie.
+          </p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

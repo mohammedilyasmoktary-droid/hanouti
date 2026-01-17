@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic"
 
 async function getCategories() {
   try {
+    if (!prisma) {
+      console.error("Prisma client is not available")
+      return []
+    }
+    
     // Optimized: Use select instead of include, remove unused fields, limit results
     // Fetch parent categories with minimal nested data
     const parentCategories = await prisma.category.findMany({
@@ -57,9 +62,15 @@ async function getCategories() {
       },
     })
 
+    console.log(`Fetched ${parentCategories.length} parent categories`)
     return parentCategories
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching categories:", error)
+    console.error("Error details:", {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+    })
     // Return empty array on error to prevent page crash
     return []
   }
