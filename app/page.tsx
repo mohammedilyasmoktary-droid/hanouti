@@ -53,22 +53,37 @@ async function getHomepageContent() {
     // Handle all Prisma errors gracefully
     // P2001 = Record not found
     // P2025 = Record to update/delete not found
-    // Any error about model not existing
-    if (
+    // Connection pool errors
+    const isConnectionPoolError = 
+      error?.message?.includes('MaxClientsInSessionMode') ||
+      error?.message?.includes('max clients reached') ||
+      error?.message?.includes('pool_size') ||
+      error?.code === 'P1001'
+    
+    const isModelError = 
       error?.code === 'P2001' || 
       error?.code === 'P2025' ||
       error?.message?.includes('does not exist') || 
       error?.message?.includes('Unknown model') ||
       error?.message?.includes('homepageContent') ||
-      error?.message?.includes('findMany') ||
+      error?.message?.includes('Invalid `prisma.homepageContent.findMany') ||
       error?.message?.includes('Cannot read properties of undefined') ||
       error?.name === 'PrismaClientKnownRequestError' ||
-      error?.name === 'PrismaClientInitializationError'
-    ) {
-      console.warn("HomepageContent model not available, using defaults:", error?.message || error)
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientUnknownRequestError'
+    
+    if (isConnectionPoolError || isModelError) {
+      // Only log in development, suppress in production to reduce noise
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("HomepageContent query failed, using defaults:", error?.message || error)
+      }
       return {}
     }
-    console.error("Error fetching homepage content:", error)
+    
+    // Log other errors but still return empty object to prevent crashes
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Error fetching homepage content:", error)
+    }
     // Always return empty object to prevent crashes
     return {}
   }

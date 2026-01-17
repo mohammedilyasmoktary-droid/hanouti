@@ -60,13 +60,27 @@ async function getProducts(categoryId?: string, page: number = 1) {
     
     return { products, total }
   } catch (error: any) {
-    console.error("Error fetching products:", error)
-    console.error("Error details:", {
-      message: error?.message,
-      code: error?.code,
-      name: error?.name,
-      stack: error?.stack?.split('\n').slice(0, 5).join('\n'),
-    })
+    // Handle connection pool errors gracefully
+    const isConnectionPoolError = 
+      error?.message?.includes('MaxClientsInSessionMode') ||
+      error?.message?.includes('max clients reached') ||
+      error?.message?.includes('pool_size') ||
+      error?.code === 'P1001'
+    
+    // Only log detailed errors in development or for non-connection errors
+    if (process.env.NODE_ENV === 'development' || !isConnectionPoolError) {
+      console.error("Error fetching products:", error)
+      console.error("Error details:", {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+        stack: error?.stack?.split('\n').slice(0, 5).join('\n'),
+      })
+    } else {
+      // For connection pool errors, just log a brief warning
+      console.warn("Database connection pool error, returning empty results")
+    }
+    
     // Return empty array to prevent page crash
     return { products: [], total: 0 }
   }
