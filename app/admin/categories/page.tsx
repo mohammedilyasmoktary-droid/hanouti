@@ -21,6 +21,7 @@ async function getCategories() {
         nameAr: true,
         slug: true,
         imageUrl: true,
+        parentId: true,
         sortOrder: true,
         isActive: true,
         createdAt: true,
