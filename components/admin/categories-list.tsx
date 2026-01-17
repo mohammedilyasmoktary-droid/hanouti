@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Eye, EyeOff } from "lucide-react"
+import { Edit, Trash2, Eye, EyeOff, Package } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -262,8 +262,13 @@ export function CategoriesList({ initialCategories }: { initialCategories: Categ
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Link href={`/admin/products?category=${subcategory.id}`}>
+                            <Button variant="ghost" size="sm" title="Voir les produits">
+                              <Package className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Link href={`/admin/categories/${subcategory.id}/edit`}>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" title="Modifier la sous-catégorie">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
