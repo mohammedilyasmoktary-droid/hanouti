@@ -7,9 +7,9 @@ import { ProductCard } from "@/components/cart/product-card"
 import { Container } from "@/components/ui/container"
 import { Button } from "@/components/ui/button"
 
-// Use ISR with 60s revalidation for better performance
-// Search results are cached but update regularly
-export const revalidate = 60
+// Must use force-dynamic because searchParams is dynamic
+// Search results are user-specific and can't be statically generated
+export const dynamic = 'force-dynamic'
 
 async function searchProducts(query: string) {
   if (!query || query.trim().length === 0) {
