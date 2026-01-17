@@ -19,6 +19,7 @@ async function getCategories() {
 
     // Optimize query - use select instead of include for better performance
     // Limit to 30 categories and count children instead of loading them all
+    // Simplified _count to avoid Prisma query errors
     const categories = await prisma.category.findMany({
       where: {
         isActive: true,
@@ -34,11 +35,7 @@ async function getCategories() {
         sortOrder: true,
         _count: {
           select: {
-            children: {
-              where: {
-                isActive: true,
-              },
-            },
+            children: true,
           },
         },
       },
