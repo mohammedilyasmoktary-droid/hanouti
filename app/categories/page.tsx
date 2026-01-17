@@ -46,18 +46,25 @@ async function getCategories() {
     
     return categories
   } catch (error: any) {
-    // Handle errors gracefully - log in development/production
-    const isDbConnectionError = 
-      error?.message?.includes("Can't reach database") ||
+    // Handle connection pool errors gracefully
+    const isConnectionPoolError = 
+      error?.message?.includes('MaxClientsInSessionMode') ||
+      error?.message?.includes('max clients reached') ||
+      error?.message?.includes('pool_size') ||
       error?.code === 'P1001' ||
       error?.name === 'PrismaClientInitializationError'
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
     
-    // Log errors in development or if not a build-time DB error
-    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
+    // Log errors in development or if not a connection pool/build-time error
+    if (process.env.NODE_ENV === 'development' || (!isConnectionPoolError && !isBuildTime)) {
       console.error("Error fetching categories:", error)
+    } else if (isConnectionPoolError) {
+      // For connection pool errors, just log a brief warning
+      console.warn("Database connection pool error, returning empty categories")
     }
+    
+    // Return empty array on error to prevent page crash
     return []
   }
 }
