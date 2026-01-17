@@ -9,14 +9,30 @@ export const dynamic = "force-dynamic"
 
 async function getCategories() {
   try {
-    // Get all parent categories (categories with no parent)
+    // Optimized: Use select instead of include for better performance
+    // Fetch parent categories with minimal nested data
     const parentCategories = await prisma.category.findMany({
       where: {
         parentId: null,
       },
-      include: {
+      select: {
+        id: true,
+        nameFr: true,
+        nameAr: true,
+        slug: true,
+        imageUrl: true,
+        sortOrder: true,
+        isActive: true,
+        createdAt: true,
         children: {
-          include: {
+          select: {
+            id: true,
+            nameFr: true,
+            nameAr: true,
+            slug: true,
+            imageUrl: true,
+            sortOrder: true,
+            isActive: true,
             _count: {
               select: {
                 products: true,

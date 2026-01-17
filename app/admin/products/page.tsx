@@ -15,10 +15,11 @@ async function getProducts(categoryId?: string) {
     // Build where clause
     const where = categoryId ? { categoryId } : {}
     
-    // Limit to 100 products per page for performance
+    // Optimized: Limit to 50 products initially for better performance
+    // Can add pagination later if needed
     return await prisma.product.findMany({
       where,
-      take: 100, // Limit to prevent loading thousands of products
+      take: 50, // Reduced from 100 to improve performance
       select: {
         id: true,
         nameFr: true,
@@ -72,8 +73,12 @@ export default async function AdminProductsPage({
 }) {
   const params = await searchParams
   const categoryId = params?.category
-  let products = await getProducts(categoryId)
-  const categoryName = categoryId ? await getCategoryName(categoryId) : null
+  
+  // Optimized: Run queries in parallel when categoryId is provided
+  const [products, categoryName] = await Promise.all([
+    getProducts(categoryId),
+    categoryId ? getCategoryName(categoryId) : Promise.resolve(null),
+  ])
 
   // Convert Decimal to number for client component
   const productsWithNumbers = products.map((product) => ({
