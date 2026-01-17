@@ -9,12 +9,13 @@ export const dynamic = "force-dynamic"
 
 async function getCategories() {
   try {
-    // Optimized: Use select instead of include for better performance
+    // Optimized: Use select instead of include, remove unused fields, limit results
     // Fetch parent categories with minimal nested data
     const parentCategories = await prisma.category.findMany({
       where: {
         parentId: null,
       },
+      take: 50, // Limit to 50 parent categories for better performance
       select: {
         id: true,
         nameFr: true,
@@ -24,8 +25,9 @@ async function getCategories() {
         parentId: true,
         sortOrder: true,
         isActive: true,
-        createdAt: true,
+        // Removed createdAt - not displayed in UI
         children: {
+          take: 100, // Limit children per parent to 100
           select: {
             id: true,
             nameFr: true,
