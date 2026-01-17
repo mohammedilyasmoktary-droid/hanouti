@@ -98,6 +98,7 @@ export function OrdersList({ initialOrders }: { initialOrders: Order[] }) {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       })
 
@@ -106,7 +107,8 @@ export function OrdersList({ initialOrders }: { initialOrders: Order[] }) {
         setOrders(orders.map((o) => (o.id === orderId ? updatedOrder : o)))
         router.refresh()
       } else {
-        const error = await res.json()
+        const error = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+        console.error("Error updating order status:", res.status, error)
         alert(error.error || "Erreur lors de la mise à jour")
       }
     } catch (error) {
