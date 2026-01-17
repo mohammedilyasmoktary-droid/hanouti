@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Eye, EyeOff, Image as ImageIcon } from "lucide-react"
+import { Edit, Trash2, Eye, EyeOff, Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -40,7 +40,21 @@ interface Product {
   }
 }
 
-export function ProductsList({ initialProducts }: { initialProducts: Product[] }) {
+interface ProductsListProps {
+  initialProducts: Product[]
+  currentPage?: number
+  totalPages?: number
+  totalProducts?: number
+  categoryId?: string
+}
+
+export function ProductsList({ 
+  initialProducts, 
+  currentPage = 1, 
+  totalPages = 1,
+  totalProducts = 0,
+  categoryId 
+}: ProductsListProps) {
   const router = useRouter()
   const [products, setProducts] = useState(initialProducts)
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; product: Product | null; loading: boolean; error: string | null }>({
@@ -230,6 +244,71 @@ export function ProductsList({ initialProducts }: { initialProducts: Product[] }
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} sur {totalPages} ({totalProducts} produit{totalProducts > 1 ? "s" : ""})
+          </div>
+          <div className="flex gap-2">
+            <Link
+              href={`/admin/products?${categoryId ? `category=${categoryId}&` : ""}page=${Math.max(1, currentPage - 1)}`}
+            >
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={currentPage === 1}
+                className="gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Précédent
+              </Button>
+            </Link>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+                return (
+                  <Link
+                    key={pageNum}
+                    href={`/admin/products?${categoryId ? `category=${categoryId}&` : ""}page=${pageNum}`}
+                  >
+                    <Button
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className="min-w-[2.5rem]"
+                    >
+                      {pageNum}
+                    </Button>
+                  </Link>
+                )
+              })}
+            </div>
+            <Link
+              href={`/admin/products?${categoryId ? `category=${categoryId}&` : ""}page=${Math.min(totalPages, currentPage + 1)}`}
+            >
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={currentPage === totalPages}
+                className="gap-2"
+              >
+                Suivant
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, product: null, loading: false, error: null })}>
         <DialogContent>

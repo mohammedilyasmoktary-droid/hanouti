@@ -5,48 +5,55 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Package } from "lucide-react"
 import { ProductsList } from "@/components/admin/products-list"
 
-async function getProducts(categoryId?: string) {
+export const PRODUCTS_PER_PAGE = 25
+
+async function getProducts(categoryId?: string, page: number = 1) {
   try {
     if (!prisma) {
       console.warn("Prisma client not available")
-      return []
+      return { products: [], total: 0 }
     }
     
     // Build where clause
     const where = categoryId ? { categoryId } : {}
     
-    // Optimized: Limit to 50 products initially for better performance
-    // Can add pagination later if needed
-    return await prisma.product.findMany({
-      where,
-      take: 50, // Reduced from 100 to improve performance
-      select: {
-        id: true,
-        nameFr: true,
-        nameAr: true,
-        slug: true,
-        description: true,
-        price: true,
-        imageUrl: true,
-        stock: true,
-        isActive: true,
-        createdAt: true,
-        category: {
-          select: {
-            id: true,
-            nameFr: true,
-            slug: true,
+    // Get total count and products in parallel
+    const [total, products] = await Promise.all([
+      prisma.product.count({ where }),
+      prisma.product.findMany({
+        where,
+        skip: (page - 1) * PRODUCTS_PER_PAGE,
+        take: PRODUCTS_PER_PAGE,
+        select: {
+          id: true,
+          nameFr: true,
+          nameAr: true,
+          slug: true,
+          description: true,
+          price: true,
+          imageUrl: true,
+          stock: true,
+          isActive: true,
+          createdAt: true,
+          category: {
+            select: {
+              id: true,
+              nameFr: true,
+              slug: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    })
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ])
+    
+    return { products, total }
   } catch (error: any) {
     console.error("Error fetching products:", error)
     // Return empty array to prevent page crash
-    return []
+    return { products: [], total: 0 }
   }
 }
 
@@ -69,14 +76,15 @@ export const dynamic = 'force-dynamic'
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; page?: string }>
 }) {
   const params = await searchParams
   const categoryId = params?.category
+  const page = parseInt(params?.page || "1", 10) || 1
   
   // Optimized: Run queries in parallel when categoryId is provided
-  const [products, categoryName] = await Promise.all([
-    getProducts(categoryId),
+  const [{ products, total }, categoryName] = await Promise.all([
+    getProducts(categoryId, page),
     categoryId ? getCategoryName(categoryId) : Promise.resolve(null),
   ])
 
@@ -85,6 +93,8 @@ export default async function AdminProductsPage({
     ...product,
     price: Number(product.price),
   }))
+  
+  const totalPages = Math.ceil(total / PRODUCTS_PER_PAGE)
 
   return (
     <div className="space-y-6">
@@ -95,8 +105,8 @@ export default async function AdminProductsPage({
           </h1>
           <p className="text-muted-foreground mt-1">
             {categoryName 
-              ? `${products.length} produit${products.length > 1 ? "s" : ""} dans ${categoryName}`
-              : `Gérez vos produits (${products.length} produit${products.length > 1 ? "s" : ""})`
+              ? `${total} produit${total > 1 ? "s" : ""} dans ${categoryName} (page ${page}/${totalPages})`
+              : `Gérez vos produits (${total} produit${total > 1 ? "s" : ""}, page ${page}/${totalPages})`
             }
           </p>
         </div>
@@ -118,7 +128,13 @@ export default async function AdminProductsPage({
       </div>
 
       {products.length > 0 ? (
-        <ProductsList initialProducts={productsWithNumbers} />
+        <ProductsList 
+          initialProducts={productsWithNumbers} 
+          currentPage={page}
+          totalPages={totalPages}
+          totalProducts={total}
+          categoryId={categoryId}
+        />
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
