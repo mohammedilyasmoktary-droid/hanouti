@@ -70,26 +70,21 @@ export default async function CategoriesPage() {
   
   try {
     categories = await getCategories()
+    // Ensure categories is always an array
+    if (!Array.isArray(categories)) {
+      categories = []
+    }
     // Log in development if no categories found
     if (categories.length === 0 && process.env.NODE_ENV === 'development') {
       console.log("No categories found - check database connection and data")
     }
   } catch (error: any) {
-    // Handle errors gracefully - log in development
-    const isDbConnectionError = 
-      error?.message?.includes("Can't reach database") ||
-      error?.code === 'P1001' ||
-      error?.name === 'PrismaClientInitializationError'
-    
-    const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
-    
-    // Log errors in development or if not a build-time DB error
-    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
-      console.error("Error in CategoriesPage:", error)
-    }
-    // Continue with empty array - page will render with empty state
+    // Handle errors gracefully - always return empty array to prevent 404
+    console.error("Error in CategoriesPage:", error?.message || error)
+    categories = [] // Ensure it's always an array
   }
 
+  // Always render the page, even with empty categories
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
