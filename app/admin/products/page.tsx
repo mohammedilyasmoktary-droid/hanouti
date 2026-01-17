@@ -14,15 +14,22 @@ async function getProducts(categoryId?: string, page: number = 1) {
       return { products: [], total: 0 }
     }
     
-    // Build where clause
-    const where = categoryId ? { categoryId } : {}
+    // Ensure page is valid
+    const validPage = Math.max(1, Math.floor(page))
+    const skip = (validPage - 1) * PRODUCTS_PER_PAGE
+    
+    // Build where clause - validate categoryId if provided
+    const where: any = {}
+    if (categoryId && categoryId.trim()) {
+      where.categoryId = categoryId.trim()
+    }
     
     // Get total count and products in parallel
     const [total, products] = await Promise.all([
       prisma.product.count({ where }),
       prisma.product.findMany({
         where,
-        skip: (page - 1) * PRODUCTS_PER_PAGE,
+        skip,
         take: PRODUCTS_PER_PAGE,
         select: {
           id: true,
@@ -52,6 +59,12 @@ async function getProducts(categoryId?: string, page: number = 1) {
     return { products, total }
   } catch (error: any) {
     console.error("Error fetching products:", error)
+    console.error("Error details:", {
+      message: error?.message,
+      code: error?.code,
+      name: error?.name,
+      stack: error?.stack?.split('\n').slice(0, 5).join('\n'),
+    })
     // Return empty array to prevent page crash
     return { products: [], total: 0 }
   }
@@ -79,8 +92,9 @@ export default async function AdminProductsPage({
   searchParams: Promise<{ category?: string; page?: string }>
 }) {
   const params = await searchParams
-  const categoryId = params?.category
-  const page = parseInt(params?.page || "1", 10) || 1
+  const categoryId = params?.category?.trim() || undefined
+  const pageParam = params?.page
+  const page = Math.max(1, parseInt(pageParam || "1", 10) || 1)
   
   // Optimized: Run queries in parallel when categoryId is provided
   const [{ products, total }, categoryName] = await Promise.all([
