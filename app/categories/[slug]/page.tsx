@@ -9,7 +9,8 @@ import { Package, ShoppingCart, ChevronRight } from "lucide-react"
 import { ProductCard } from "@/components/cart/product-card"
 import { Container } from "@/components/ui/container"
 
-// Use ISR - revalidate every 60 seconds for faster page loads
+// Use ISR with 60s revalidation for better performance
+// Products update every minute while keeping fast page loads
 export const revalidate = 60
 
 async function getCategory(slug: string) {
@@ -48,7 +49,7 @@ async function getCategory(slug: string) {
           where: {
             isActive: true,
           },
-          take: 50, // Limit to 50 products per category for performance
+          take: 24, // Limit to 24 products initially for better performance
           orderBy: {
             createdAt: "desc",
           },
@@ -58,6 +59,7 @@ async function getCategory(slug: string) {
             slug: true,
             price: true,
             imageUrl: true,
+            stock: true,
           },
         },
       },
@@ -83,7 +85,7 @@ async function getCategory(slug: string) {
             categoryId: { in: subcategoryIds },
             isActive: true,
           },
-          take: 100, // Limit to 100 total products from subcategories
+          take: 48, // Limit to 48 products from subcategories for performance
           orderBy: {
             createdAt: "desc",
           },
@@ -93,6 +95,7 @@ async function getCategory(slug: string) {
             slug: true,
             price: true,
             imageUrl: true,
+            stock: true,
           },
         })
         
@@ -268,6 +271,7 @@ export default async function CategoryPage({
                       nameFr: product.nameFr,
                       price: Number(product.price),
                       imageUrl: product.imageUrl,
+                      stock: product.stock,
                     }}
                   />
                 ))}

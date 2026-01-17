@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   
-  // Headers for better caching
+  // Headers for better caching and performance
   async headers() {
     return [
       {
@@ -70,7 +70,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/uploads/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
         source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/image/:path*',
         headers: [
           {
             key: 'Cache-Control',

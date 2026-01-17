@@ -92,26 +92,45 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
         : "/api/admin/categories"
       const method = category ? "PATCH" : "POST"
 
+      // Ensure proper data formatting
+      const requestBody = {
+        nameFr: data.nameFr || "",
+        nameAr: data.nameAr || null,
+        slug: data.slug || "",
+        imageUrl: data.imageUrl && data.imageUrl.trim() !== "" ? data.imageUrl.trim() : null,
+        parentId: data.parentId || null,
+        sortOrder: Number(data.sortOrder) || 0,
+        isActive: Boolean(data.isActive),
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          imageUrl: data.imageUrl || null, // Ensure null instead of empty string
-        }),
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       })
 
-      if (res.ok) {
-        router.push("/admin/categories")
-        router.refresh()
-      } else {
-        const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))
-        const errorMessage = errorData.error?.message || errorData.error || "Une erreur est survenue"
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: `Erreur ${res.status}: ${res.statusText}` }))
+        const errorMessage = errorData.error?.message || errorData.error || `Erreur ${res.status}: ${res.statusText}`
         alert(errorMessage)
+        return
       }
+
+      // Success - redirect and refresh
+      router.push("/admin/categories")
+      router.refresh()
     } catch (error) {
       console.error("Error saving category:", error)
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue"
+      let errorMessage = "Une erreur est survenue"
+      
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        errorMessage = "Erreur de connexion. Vérifiez votre connexion internet ou réessayez plus tard."
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      
       alert(errorMessage)
     } finally {
       setLoading(false)

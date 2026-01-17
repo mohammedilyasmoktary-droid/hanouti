@@ -190,15 +190,127 @@ const categoriesData = [
   },
 ]
 
-const productTemplates: Record<string, Array<{
+// Product templates by category slug
+const PRODUCT_TEMPLATES: Record<string, Array<{
   nameFr: string
-  nameAr: string
-  slugSuffix: string
-  description: string
+  brand: string
+  size: string
   price: number
-  stock: number
-  imageUrl: string
-}>> = {}
+  description: string
+}>> = {
+  // Épicerie Sèche
+  "riz": [
+    { nameFr: "Riz long grain", brand: "Taous", size: "1 kg", price: 22.90, description: "Riz long grain — Taous — 1 kg" },
+    { nameFr: "Riz basmati", brand: "Tilda", size: "1 kg", price: 49.90, description: "Riz basmati — Tilda — 1 kg" },
+    { nameFr: "Riz rond", brand: "Local", size: "1 kg", price: 24.90, description: "Riz rond — Local — 1 kg" },
+    { nameFr: "Riz complet", brand: "Uncle Ben's", size: "1 kg", price: 39.90, description: "Riz complet — Uncle Ben's — 1 kg" },
+  ],
+  "pates": [
+    { nameFr: "Spaghetti", brand: "Panzani", size: "500 g", price: 14.90, description: "Spaghetti — Panzani — 500 g" },
+    { nameFr: "Macaroni", brand: "Dari", size: "500 g", price: 12.90, description: "Macaroni — Dari — 500 g" },
+    { nameFr: "Penne", brand: "Barilla", size: "500 g", price: 18.90, description: "Penne — Barilla — 500 g" },
+    { nameFr: "Vermicelles", brand: "Local", size: "500 g", price: 9.90, description: "Vermicelles — Local — 500 g" },
+  ],
+  "semoule": [
+    { nameFr: "Semoule fine", brand: "Dari Couspate", size: "1 kg", price: 16.90, description: "Semoule fine — Dari Couspate — 1 kg" },
+    { nameFr: "Semoule moyenne", brand: "Dari Couspate", size: "1 kg", price: 16.90, description: "Semoule moyenne — Dari Couspate — 1 kg" },
+    { nameFr: "Semoule complète", brand: "Dari", size: "1 kg", price: 18.90, description: "Semoule complète — Dari — 1 kg" },
+    { nameFr: "Farine de maïs (polenta)", brand: "Marca", size: "500 g", price: 19.90, description: "Farine de maïs (polenta) — Marca — 500 g" },
+  ],
+  "farine": [
+    { nameFr: "Farine blanche", brand: "Forafric", size: "1 kg", price: 11.90, description: "Farine blanche — Forafric — 1 kg" },
+    { nameFr: "Farine complète", brand: "Forafric", size: "1 kg", price: 14.90, description: "Farine complète — Forafric — 1 kg" },
+    { nameFr: "Farine pâtissière", brand: "Francine", size: "1 kg", price: 19.90, description: "Farine pâtissière — Francine — 1 kg" },
+    { nameFr: "Levure chimique", brand: "Alsa", size: "5 sachets", price: 12.90, description: "Levure chimique — Alsa — 5 sachets" },
+  ],
+  "legumineuses": [
+    { nameFr: "Lentilles", brand: "Local", size: "1 kg", price: 22.90, description: "Lentilles — Local — 1 kg" },
+    { nameFr: "Pois chiches", brand: "Local", size: "1 kg", price: 24.90, description: "Pois chiches — Local — 1 kg" },
+    { nameFr: "Haricots blancs", brand: "Local", size: "1 kg", price: 26.90, description: "Haricots blancs — Local — 1 kg" },
+    { nameFr: "Fèves sèches", brand: "Local", size: "1 kg", price: 19.90, description: "Fèves sèches — Local — 1 kg" },
+  ],
+  "conserver": [ // Note: slug is "conserver" in seed data (typo, but keeping for compatibility)
+    { nameFr: "Thon à l'huile", brand: "John West", size: "160 g", price: 19.90, description: "Thon à l'huile — John West — 160 g" },
+    { nameFr: "Sardines", brand: "Connétable", size: "125 g", price: 14.90, description: "Sardines — Connétable — 125 g" },
+    { nameFr: "Tomates pelées", brand: "Aïcha", size: "400 g", price: 9.90, description: "Tomates pelées — Aïcha — 400 g" },
+    { nameFr: "Maïs", brand: "Bonduelle", size: "300 g", price: 16.90, description: "Maïs — Bonduelle — 300 g" },
+  ],
+  "conserves": [ // Also support "conserves" slug if it exists
+    { nameFr: "Thon à l'huile", brand: "John West", size: "160 g", price: 19.90, description: "Thon à l'huile — John West — 160 g" },
+    { nameFr: "Sardines", brand: "Connétable", size: "125 g", price: 14.90, description: "Sardines — Connétable — 125 g" },
+    { nameFr: "Tomates pelées", brand: "Aïcha", size: "400 g", price: 9.90, description: "Tomates pelées — Aïcha — 400 g" },
+    { nameFr: "Maïs", brand: "Bonduelle", size: "300 g", price: 16.90, description: "Maïs — Bonduelle — 300 g" },
+  ],
+  // Huiles, Épices & Condiments
+  "huile-de-table": [
+    { nameFr: "Huile de tournesol", brand: "Lesieur Cristal", size: "1 L", price: 24.90, description: "Huile de tournesol — Lesieur Cristal — 1 L" },
+    { nameFr: "Huile de maïs", brand: "Mazola", size: "1 L", price: 34.90, description: "Huile de maïs — Mazola — 1 L" },
+    { nameFr: "Huile végétale", brand: "Local", size: "1 L", price: 19.90, description: "Huile végétale — Local — 1 L" },
+    { nameFr: "Spray huile cuisson", brand: "Brandless", size: "200 ml", price: 29.90, description: "Spray huile cuisson — Brandless — 200 ml" },
+  ],
+  "huile-dolive": [
+    { nameFr: "Huile d'olive extra vierge", brand: "Lesieur Cristal", size: "1 L", price: 79.90, description: "Huile d'olive extra vierge — Lesieur Cristal — 1 L" },
+    { nameFr: "Huile d'olive", brand: "Local", size: "1 L", price: 69.90, description: "Huile d'olive — Local — 1 L" },
+    { nameFr: "Huile d'olive", brand: "Borges", size: "500 ml", price: 59.90, description: "Huile d'olive — Borges — 500 ml" },
+    { nameFr: "Huile d'olive vierge", brand: "Terra Delyssa", size: "500 ml", price: 64.90, description: "Huile d'olive vierge — Terra Delyssa — 500 ml" },
+  ],
+  "epices": [
+    { nameFr: "Ras el hanout", brand: "Local", size: "50 g", price: 14.90, description: "Ras el hanout — Local — 50 g" },
+    { nameFr: "Cumin moulu", brand: "Ducros", size: "40 g", price: 19.90, description: "Cumin moulu — Ducros — 40 g" },
+    { nameFr: "Paprika", brand: "Ducros", size: "40 g", price: 19.90, description: "Paprika — Ducros — 40 g" },
+    { nameFr: "Gingembre moulu", brand: "Local", size: "50 g", price: 12.90, description: "Gingembre moulu — Local — 50 g" },
+  ],
+  "sel-sucre": [
+    { nameFr: "Sel fin", brand: "Local", size: "1 kg", price: 6.90, description: "Sel fin — Local — 1 kg" },
+    { nameFr: "Sucre en morceaux", brand: "Cosumar", size: "1 kg", price: 12.90, description: "Sucre en morceaux — Cosumar — 1 kg" },
+    { nameFr: "Sucre semoule", brand: "Cosumar", size: "1 kg", price: 11.90, description: "Sucre semoule — Cosumar — 1 kg" },
+    { nameFr: "Sel de mer", brand: "Local", size: "500 g", price: 9.90, description: "Sel de mer — Local — 500 g" },
+  ],
+  "sauces-harissa": [
+    { nameFr: "Harissa", brand: "Le Phare du Cap Bon", size: "200 g", price: 19.90, description: "Harissa — Le Phare du Cap Bon — 200 g" },
+    { nameFr: "Ketchup", brand: "Heinz", size: "400 g", price: 24.90, description: "Ketchup — Heinz — 400 g" },
+    { nameFr: "Mayonnaise", brand: "Lesieur", size: "235 g", price: 18.90, description: "Mayonnaise — Lesieur — 235 g" },
+    { nameFr: "Sauce soja", brand: "Kikkoman", size: "150 ml", price: 29.90, description: "Sauce soja — Kikkoman — 150 ml" },
+  ],
+  "vinaigre": [
+    { nameFr: "Vinaigre blanc", brand: "Local", size: "1 L", price: 9.90, description: "Vinaigre blanc — Local — 1 L" },
+    { nameFr: "Vinaigre de cidre", brand: "Bragg", size: "473 ml", price: 49.90, description: "Vinaigre de cidre — Bragg — 473 ml" },
+    { nameFr: "Vinaigre balsamique", brand: "Ponti", size: "500 ml", price: 34.90, description: "Vinaigre balsamique — Ponti — 500 ml" },
+    { nameFr: "Vinaigre de vin", brand: "Local", size: "500 ml", price: 12.90, description: "Vinaigre de vin — Local — 500 ml" },
+  ],
+}
+
+// Generate slug from product name, brand, and size
+function generateSlug(nameFr: string, brand: string, size: string, categorySlug: string, index: number): string {
+  const base = `${categorySlug}-${index}-${nameFr} ${brand} ${size}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+  return base
+}
+
+// Generate fallback products for categories without templates
+function generateFallbackProducts(categoryName: string, categorySlug: string): Array<{
+  nameFr: string
+  brand: string
+  size: string
+  price: number
+  description: string
+}> {
+  const brands = ["Local", "Marque Premium", "Marque Standard", "Marque Économique"]
+  const sizes = ["1 unité", "500 g", "1 L", "1 kg"]
+  const basePrices = [15.90, 24.90, 19.90, 29.90]
+  
+  return Array.from({ length: 4 }, (_, i) => ({
+    nameFr: `${categoryName} ${i + 1}`,
+    brand: brands[i],
+    size: sizes[i],
+    price: basePrices[i],
+    description: `${categoryName} ${i + 1} — ${brands[i]} — ${sizes[i]}`,
+  }))
+}
 
 async function main() {
   console.log("🌱 Seeding database...")
@@ -221,9 +333,8 @@ async function main() {
   })
   console.log("✅ Admin user created:", adminEmail)
 
-  await prisma.orderItem.deleteMany({})
-  await prisma.product.deleteMany({})
-  console.log("🧹 Cleared existing products")
+  // Don't delete products - use upsert for idempotency
+  console.log("📦 Seeding products (idempotent - will upsert by slug)")
 
   const categoryMap = new Map<string, string>()
 
@@ -271,19 +382,130 @@ async function main() {
     }
   }
 
+  // Find all leaf categories (categories with no children)
   const allCategories = await prisma.category.findMany({
     include: {
       children: {
         select: { id: true },
       },
     },
+    where: {
+      isActive: true,
+    },
   })
 
   const leafCategories = allCategories.filter((cat) => cat.children.length === 0)
-  const totalCategories = allCategories.length
+  console.log(`\n📊 Found ${leafCategories.length} leaf categories to populate\n`)
 
-  console.log(`\n📊 Categories: ${totalCategories} total, ${leafCategories.length} leaf categories`)
-  console.log("🎉 Seeding completed successfully!")
+  let totalCreated = 0
+  let totalUpdated = 0
+  const missingSections: string[] = []
+
+  // Seed products for each leaf category
+  for (const category of leafCategories) {
+    const categorySlug = category.slug.toLowerCase()
+    let templates = PRODUCT_TEMPLATES[categorySlug]
+
+    // If no template found, generate fallback products
+    if (!templates) {
+      templates = generateFallbackProducts(category.nameFr, categorySlug)
+      missingSections.push(`${category.nameFr} (${categorySlug})`)
+    }
+
+    console.log(`📦 Processing: ${category.nameFr} (${categorySlug})`)
+
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i]
+      const slug = generateSlug(template.nameFr, template.brand, template.size, categorySlug, i + 1)
+
+      // Ensure slug is unique by appending a number if needed
+      let finalSlug = slug
+      let counter = 1
+      while (true) {
+        const existing = await prisma.product.findUnique({
+          where: { slug: finalSlug },
+        })
+
+        if (!existing || existing.categoryId === category.id) {
+          break
+        }
+
+        finalSlug = `${slug}-${counter}`
+        counter++
+      }
+
+      // Upsert product by slug
+      const product = await prisma.product.upsert({
+        where: { slug: finalSlug },
+        update: {
+          nameFr: template.nameFr,
+          description: template.description,
+          price: template.price,
+          stock: 50,
+          isActive: true,
+          imageUrl: `https://via.placeholder.com/400x400?text=${encodeURIComponent(template.nameFr)}`,
+        },
+        create: {
+          nameFr: template.nameFr,
+          slug: finalSlug,
+          description: template.description,
+          price: template.price,
+          categoryId: category.id,
+          stock: 50,
+          isActive: true,
+          imageUrl: `https://via.placeholder.com/400x400?text=${encodeURIComponent(template.nameFr)}`,
+        },
+      })
+
+      // Check if it was created or updated
+      const wasCreated = product.createdAt.getTime() === product.updatedAt.getTime()
+      if (wasCreated) {
+        totalCreated++
+      } else {
+        totalUpdated++
+      }
+    }
+
+    console.log(`   ✓ Added ${templates.length} products`)
+  }
+
+  // Verification: Check that each leaf category has at least 4 products
+  console.log("\n🔍 Verifying seed results...")
+  const verificationErrors: string[] = []
+
+  for (const category of leafCategories) {
+    const productCount = await prisma.product.count({
+      where: {
+        categoryId: category.id,
+        isActive: true,
+      },
+    })
+
+    if (productCount < 4) {
+      verificationErrors.push(`${category.nameFr} (${category.slug}): only ${productCount} products`)
+    }
+  }
+
+  if (verificationErrors.length > 0) {
+    console.error("\n❌ Verification failed! Some categories have fewer than 4 products:")
+    verificationErrors.forEach((error) => console.error(`   - ${error}`))
+    throw new Error("Seed verification failed")
+  }
+
+  // Print summary
+  console.log("\n✅ Seed verification passed!")
+  console.log(`\n📊 Summary:`)
+  console.log(`   - Leaf categories: ${leafCategories.length}`)
+  console.log(`   - Products created: ${totalCreated}`)
+  console.log(`   - Products updated: ${totalUpdated}`)
+  console.log(`   - Total products: ${totalCreated + totalUpdated}`)
+  
+  if (missingSections.length > 0) {
+    console.log(`\n⚠️  Categories with generated fallback products (${missingSections.length}):`)
+    missingSections.forEach((section) => console.log(`   - ${section}`))
+  }
+
+  console.log("\n🎉 Seeding completed successfully!")
 }
 
 main()

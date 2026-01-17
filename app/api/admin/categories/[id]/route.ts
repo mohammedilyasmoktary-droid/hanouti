@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { getToken } from "next-auth/jwt"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
@@ -65,9 +64,29 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Parse params and request body
     const { id } = await params
-    const body = await req.json()
-    const data = updateSchema.parse(body)
+    let body: any
+    try {
+      body = await req.json()
+    } catch (error) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+    }
+
+    // Validate and parse the data
+    let data: z.infer<typeof updateSchema>
+    try {
+      data = updateSchema.parse(body)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return NextResponse.json(
+          { error: firstError?.message || "Données invalides", details: error.issues },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
 
     // If slug is being updated, check if it's unique
     if (data.slug) {
@@ -94,6 +113,18 @@ export async function PATCH(
     return NextResponse.json(category)
   } catch (error) {
     console.error("Error updating category:", error)
+    
+    // Handle Prisma errors
+    if (error && typeof error === "object" && "code" in error) {
+      if (error.code === "P2025") {
+        return NextResponse.json({ error: "Catégorie introuvable" }, { status: 404 })
+      }
+      if (error.code === "P2002") {
+        return NextResponse.json({ error: "Cette valeur existe déjà" }, { status: 400 })
+      }
+    }
+    
+    // Handle Zod errors (should already be caught above, but just in case)
     if (error instanceof z.ZodError) {
       const firstError = error.issues[0]
       return NextResponse.json(
@@ -101,6 +132,7 @@ export async function PATCH(
         { status: 400 }
       )
     }
+    
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
