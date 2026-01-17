@@ -18,42 +18,44 @@ async function getProducts(categoryId?: string, page: number = 1) {
     const validPage = Math.max(1, Math.floor(page))
     const skip = (validPage - 1) * PRODUCTS_PER_PAGE
     
-    // Build where clause - validate categoryId if provided
-    const where: any = {}
-    if (categoryId && categoryId.trim()) {
-      where.categoryId = categoryId.trim()
+    // Build where clause - only include if categoryId is provided
+    const whereClause = categoryId && categoryId.trim() 
+      ? { categoryId: categoryId.trim() } 
+      : undefined
+    
+    // Build query options for findMany
+    const findManyOptions = {
+      ...(whereClause && { where: whereClause }),
+      skip,
+      take: PRODUCTS_PER_PAGE,
+      select: {
+        id: true,
+        nameFr: true,
+        nameAr: true,
+        slug: true,
+        description: true,
+        price: true,
+        imageUrl: true,
+        stock: true,
+        isActive: true,
+        createdAt: true,
+        category: {
+          select: {
+            id: true,
+            nameFr: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc" as const,
+      },
     }
     
     // Get total count and products in parallel
     const [total, products] = await Promise.all([
-      prisma.product.count({ where }),
-      prisma.product.findMany({
-        where,
-        skip,
-        take: PRODUCTS_PER_PAGE,
-        select: {
-          id: true,
-          nameFr: true,
-          nameAr: true,
-          slug: true,
-          description: true,
-          price: true,
-          imageUrl: true,
-          stock: true,
-          isActive: true,
-          createdAt: true,
-          category: {
-            select: {
-              id: true,
-              nameFr: true,
-              slug: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
+      prisma.product.count(whereClause ? { where: whereClause } : undefined),
+      prisma.product.findMany(findManyOptions),
     ])
     
     return { products, total }
