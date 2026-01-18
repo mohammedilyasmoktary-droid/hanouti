@@ -53,12 +53,18 @@ async function getHomepageContent() {
     // Handle all Prisma errors gracefully
     // P2001 = Record not found
     // P2025 = Record to update/delete not found
-    // Connection pool errors
-    const isConnectionPoolError = 
+    // Connection errors
+    const isConnectionError = 
       error?.message?.includes('MaxClientsInSessionMode') ||
       error?.message?.includes('max clients reached') ||
       error?.message?.includes('pool_size') ||
-      error?.code === 'P1001'
+      error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     const isModelError = 
       error?.code === 'P2001' || 
@@ -72,7 +78,7 @@ async function getHomepageContent() {
       error?.name === 'PrismaClientInitializationError' ||
       error?.name === 'PrismaClientUnknownRequestError'
     
-    if (isConnectionPoolError || isModelError) {
+    if (isConnectionError || isModelError) {
       // Only log in development, suppress in production to reduce noise
       if (process.env.NODE_ENV === 'development') {
         console.warn("HomepageContent query failed, using defaults:", error?.message || error)
@@ -140,22 +146,30 @@ async function getFeaturedCategoriesInternal(categoryIds?: string[]) {
 
     return categories
   } catch (error: any) {
-    // Handle connection pool errors gracefully
-    const isConnectionPoolError = 
+    // Handle all database connection errors gracefully
+    const isConnectionError = 
       error?.message?.includes('MaxClientsInSessionMode') ||
       error?.message?.includes('max clients reached') ||
       error?.message?.includes('pool_size') ||
+      error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
       error?.code === 'P1001' ||
-      error?.name === 'PrismaClientInitializationError'
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
     
     // Only log detailed errors in development or for non-connection errors
-    if (process.env.NODE_ENV === 'development' || (!isConnectionPoolError && !isBuildTime)) {
+    if (process.env.NODE_ENV === 'development' || (!isConnectionError && !isBuildTime)) {
       console.error("Database error in getFeaturedCategories:", error)
-    } else if (isConnectionPoolError) {
-      // For connection pool errors, just log a brief warning
-      console.warn("Database connection pool error in getFeaturedCategories, using empty categories")
+    } else if (isConnectionError) {
+      // For connection errors, just log a brief warning (suppressed in production to reduce noise)
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("Database connection error in getFeaturedCategories, using empty categories:", error?.message || error)
+      }
+      // In production, errors are already handled by Prisma client initialization checks
     }
     
     // Always return empty array to prevent crashes
@@ -198,15 +212,23 @@ async function getPopularProductsInternal() {
     
     return products
   } catch (error: any) {
-    // Handle errors gracefully - only log if not a build-time database error
+    // Handle all database connection errors gracefully
     const isDbConnectionError = 
       error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
+      error?.message?.includes('MaxClientsInSessionMode') ||
+      error?.message?.includes('max clients reached') ||
+      error?.message?.includes('pool_size') ||
       error?.code === 'P1001' ||
-      error?.name === 'PrismaClientInitializationError'
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
     
-    if (!isDbConnectionError && !isBuildTime) {
+    // Only log non-connection errors or during development
+    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
       console.error("Database error in getPopularProducts:", error)
     }
     // Always return empty array to prevent crashes
@@ -240,13 +262,20 @@ export default async function HomePage() {
     // Check if it's a database connection error (common during build)
     const isDbConnectionError = 
       error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
+      error?.message?.includes('MaxClientsInSessionMode') ||
+      error?.message?.includes('max clients reached') ||
+      error?.message?.includes('pool_size') ||
       error?.code === 'P1001' ||
-      error?.name === 'PrismaClientInitializationError'
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     const isBuildTime = !process.env.DATABASE_URL || process.env.NEXT_PHASE === 'phase-production-build'
     
     // Only log non-database errors and only outside build time
-    if (!isDbConnectionError && !isBuildTime) {
+    if (process.env.NODE_ENV === 'development' || (!isDbConnectionError && !isBuildTime)) {
       console.error("Error fetching data:", error)
       if (error?.message) {
         console.error("Error message:", error.message)

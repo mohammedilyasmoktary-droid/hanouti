@@ -60,15 +60,21 @@ async function getProducts(categoryId?: string, page: number = 1) {
     
     return { products, total }
   } catch (error: any) {
-    // Handle connection pool errors gracefully
-    const isConnectionPoolError = 
+    // Handle all database connection errors gracefully
+    const isConnectionError = 
       error?.message?.includes('MaxClientsInSessionMode') ||
       error?.message?.includes('max clients reached') ||
       error?.message?.includes('pool_size') ||
-      error?.code === 'P1001'
+      error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     // Only log detailed errors in development or for non-connection errors
-    if (process.env.NODE_ENV === 'development' || !isConnectionPoolError) {
+    if (process.env.NODE_ENV === 'development' || !isConnectionError) {
       console.error("Error fetching products:", error)
       console.error("Error details:", {
         message: error?.message,
@@ -77,8 +83,8 @@ async function getProducts(categoryId?: string, page: number = 1) {
         stack: error?.stack?.split('\n').slice(0, 5).join('\n'),
       })
     } else {
-      // For connection pool errors, just log a brief warning
-      console.warn("Database connection pool error, returning empty results")
+      // For connection errors, just log a brief warning
+      console.warn("Database connection error, returning empty results")
     }
     
     // Return empty array to prevent page crash

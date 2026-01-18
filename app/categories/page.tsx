@@ -46,22 +46,28 @@ async function getCategories() {
     
     return categories
   } catch (error: any) {
-    // Handle connection pool errors gracefully
-    const isConnectionPoolError = 
+    // Handle all database connection errors gracefully
+    const isConnectionError = 
       error?.message?.includes('MaxClientsInSessionMode') ||
       error?.message?.includes('max clients reached') ||
       error?.message?.includes('pool_size') ||
+      error?.message?.includes("Can't reach database") ||
+      error?.message?.includes('database server') ||
+      error?.message?.includes('connection') ||
       error?.code === 'P1001' ||
-      error?.name === 'PrismaClientInitializationError'
+      error?.code === 'P1000' ||
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.name === 'PrismaClientConnectionError'
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    const isDev = process.env.NODE_ENV === 'development'
     
-    // Log errors in development or if not a connection pool/build-time error
-    if (process.env.NODE_ENV === 'development' || (!isConnectionPoolError && !isBuildTime)) {
+    // Log errors in development or if not a connection error/build-time error
+    if (isDev || (!isConnectionError && !isBuildTime)) {
       console.error("Error fetching categories:", error)
-    } else if (isConnectionPoolError) {
-      // For connection pool errors, just log a brief warning
-      console.warn("Database connection pool error, returning empty categories")
+    } else if (isConnectionError && isDev) {
+      // For connection errors in development, log a brief warning
+      console.warn("Database connection error, returning empty categories:", error?.message || error)
     }
     
     // Return empty array on error to prevent page crash

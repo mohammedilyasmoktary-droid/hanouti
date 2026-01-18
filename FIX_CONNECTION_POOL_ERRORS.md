@@ -71,3 +71,4 @@ But **you still need to switch to Transaction Mode** to fix the root cause!
 
 Once you update the DATABASE_URL to Transaction Mode (port 6543), all errors will disappear and your site will work perfectly with unlimited products/categories.
 
+

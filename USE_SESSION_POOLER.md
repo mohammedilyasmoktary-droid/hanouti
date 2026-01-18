@@ -53,3 +53,4 @@ Your password is `Monopoli00###`, so URL-encode it:
 
 Session Pooler has a limit of 2-5 connections, but with our error handling, the app will handle occasional connection limits gracefully. For high traffic, you can upgrade to Transaction Mode later.
 
+

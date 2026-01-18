@@ -88,3 +88,4 @@ If you're still getting errors, try:
 3. Verify no extra spaces before/after the string
 4. Try removing and re-adding the environment variable in Vercel
 
+
