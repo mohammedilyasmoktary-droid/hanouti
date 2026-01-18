@@ -44,6 +44,21 @@ async function getCategories() {
       },
     })
     
+    // Log result for debugging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Categories Page] Fetched ${categories.length} active categories`)
+      if (categories.length === 0) {
+        // Check if there are any categories at all (even inactive)
+        const totalCategories = await prisma.category.count({
+          where: { parentId: null }
+        })
+        const activeCategories = await prisma.category.count({
+          where: { parentId: null, isActive: true }
+        })
+        console.log(`[Categories Page] Total categories: ${totalCategories}, Active: ${activeCategories}`)
+      }
+    }
+    
     return categories
   } catch (error: any) {
     // Handle all database connection errors gracefully
@@ -78,6 +93,8 @@ async function getCategories() {
 export default async function CategoriesPage() {
   try {
     let categories: Awaited<ReturnType<typeof getCategories>> = []
+    let hasConnectionIssue = false
+    let totalCategoriesCount = 0
     
     try {
       categories = await getCategories()
@@ -85,8 +102,25 @@ export default async function CategoriesPage() {
       if (!Array.isArray(categories)) {
         categories = []
       }
+      
+      // Diagnostic: Check if we can query the database at all
+      // (Only in development to avoid extra queries in production)
+      if (process.env.NODE_ENV === 'development' && categories.length === 0 && prisma) {
+        try {
+          totalCategoriesCount = await prisma.category.count({
+            where: { parentId: null }
+          })
+          if (totalCategoriesCount > 0) {
+            console.warn(`[Categories Page] Found ${totalCategoriesCount} total categories but 0 active. Categories may be inactive.`)
+          }
+        } catch (diagError) {
+          hasConnectionIssue = true
+          console.error("[Categories Page] Diagnostic query failed:", diagError)
+        }
+      }
     } catch (error: any) {
       // Handle errors gracefully - always return empty array to prevent 404
+      hasConnectionIssue = true
       console.error("Error fetching categories:", error?.message || error)
       categories = [] // Ensure it's always an array
     }
@@ -130,9 +164,38 @@ export default async function CategoriesPage() {
               <div className="bg-white border border-zinc-200/60 rounded-2xl p-12 text-center shadow-sm">
                 <Package className="h-16 w-16 text-zinc-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2 text-zinc-900">Aucune catégorie disponible</h3>
-                <p className="text-sm text-zinc-600">
+                <p className="text-sm text-zinc-600 mb-4">
                   Les catégories seront ajoutées prochainement.
                 </p>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-left">
+                    <p className="text-xs text-yellow-800 font-semibold mb-2">Debug Info:</p>
+                    <p className="text-xs text-yellow-700">
+                      {hasConnectionIssue ? (
+                        <>
+                          ⚠️ <strong>Connection Issue Detected</strong><br/>
+                          • Check Vercel logs for database connection errors<br/>
+                          • Verify DATABASE_URL in Vercel environment variables<br/>
+                          • Check Supabase quota (may be exceeded)
+                        </>
+                      ) : totalCategoriesCount > 0 ? (
+                        <>
+                          ℹ️ <strong>Found {totalCategoriesCount} categories, but none are active</strong><br/>
+                          • Go to admin panel and activate categories<br/>
+                          • Categories must have <code className="bg-yellow-100 px-1 rounded">isActive: true</code><br/>
+                          • Categories must have <code className="bg-yellow-100 px-1 rounded">parentId: null</code>
+                        </>
+                      ) : (
+                        <>
+                          ℹ️ <strong>No categories found in database</strong><br/>
+                          • Go to admin panel and create categories<br/>
+                          • Make sure categories are marked as active<br/>
+                          • Verify database connection is working
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </Container>
