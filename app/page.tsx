@@ -160,16 +160,14 @@ async function getFeaturedCategoriesInternal(categoryIds?: string[]) {
       error?.name === 'PrismaClientConnectionError'
     
     const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.DATABASE_URL
+    const isDev = process.env.NODE_ENV === 'development'
     
     // Only log detailed errors in development or for non-connection errors
-    if (process.env.NODE_ENV === 'development' || (!isConnectionError && !isBuildTime)) {
+    if (isDev || (!isConnectionError && !isBuildTime)) {
       console.error("Database error in getFeaturedCategories:", error)
-    } else if (isConnectionError) {
-      // For connection errors, just log a brief warning (suppressed in production to reduce noise)
-      if (process.env.NODE_ENV === 'development') {
-        console.warn("Database connection error in getFeaturedCategories, using empty categories:", error?.message || error)
-      }
-      // In production, errors are already handled by Prisma client initialization checks
+    } else if (isConnectionError && isDev) {
+      // For connection errors in development, log a brief warning
+      console.warn("Database connection error in getFeaturedCategories, using empty categories:", error?.message || error)
     }
     
     // Always return empty array to prevent crashes
