@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "@/lib/auth"
+import { getToken } from "next-auth/jwt"
 import { z } from "zod"
 
 const homepageContentSchema = z.object({
@@ -9,10 +9,43 @@ const homepageContentSchema = z.object({
   isActive: z.boolean().optional().default(true),
 })
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession()
-    if (!session?.user || session.user.role !== "ADMIN") {
+    // Get session from request cookies
+    const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+    if (!secret) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+    }
+
+    const cookieHeader = req.headers.get("cookie") || ""
+    
+    // Try multiple cookie names
+    const cookieNames = [
+      "__Secure-authjs.session-token",
+      "authjs.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.session-token",
+    ]
+    
+    let token: any = null
+    for (const cookieName of cookieNames) {
+      try {
+        token = await getToken({
+          req: {
+            headers: {
+              cookie: cookieHeader,
+            },
+          } as any,
+          secret,
+          cookieName,
+        })
+        if (token) break
+      } catch (e) {
+        continue
+      }
+    }
+
+    if (!token || token.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -40,8 +73,41 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession()
-    if (!session?.user || session.user.role !== "ADMIN") {
+    // Get session from request cookies
+    const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+    if (!secret) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+    }
+
+    const cookieHeader = req.headers.get("cookie") || ""
+    
+    // Try multiple cookie names
+    const cookieNames = [
+      "__Secure-authjs.session-token",
+      "authjs.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.session-token",
+    ]
+    
+    let token: any = null
+    for (const cookieName of cookieNames) {
+      try {
+        token = await getToken({
+          req: {
+            headers: {
+              cookie: cookieHeader,
+            },
+          } as any,
+          secret,
+          cookieName,
+        })
+        if (token) break
+      } catch (e) {
+        continue
+      }
+    }
+
+    if (!token || token.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
