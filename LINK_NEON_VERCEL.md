@@ -65,15 +65,18 @@ After authorization, you'll see configuration options:
 You'll see configuration options:
 
 **Configuration options:**
-1. **Region:** Choose closest to you (e.g., `us-east-2`, `eu-west-1`)
-2. **Plan:** Select **"Free"** tier (or paid if you prefer)
-3. **Preview Branching (Optional):** 
-   - Enable to create separate database branches for each Vercel Preview deployment
-   - Recommended for production apps
-   - Keeps preview environments isolated
-4. **Database name:** Usually auto-generated (e.g., `hanouti-neon`)
+1. **Database name:** `hanouti` (or any name you prefer) ✅ Your choice looks good!
+2. **Region:** Choose closest to you for best performance
+   - Currently selected: **Washington, D.C., USA (East) iad1** ✅
+   - If you're in Europe, consider EU regions
+   - If you're in Asia, consider Asia-Pacific regions
+3. **Auth:** Usually `False` for managed integration (Vercel handles auth) ✅ This is correct
+4. **Plan:** Select **"Free"** tier ✅ Selected correctly
+   - **Storage:** 0.5 GB per project (enough for thousands of products/categories)
+   - **Compute:** 120 CU-hours per project (generous for free tier)
+   - **No credit card required** ✅
 
-**Click "Create" or "Install"**
+**Click "Create" button** to proceed
 
 **What happens:**
 - Neon creates a new database automatically
