@@ -176,29 +176,42 @@ async function getFeaturedCategoriesInternal(categoryIds?: string[]) {
 }
 
 // Cache the query for request-level memoization
-const getPopularProductsCached = cache(async () => {
-  return await getPopularProductsInternal()
+const getPopularProductsCached = cache(async (productIds?: string[]) => {
+  return await getPopularProductsInternal(productIds)
 })
 
-async function getPopularProductsInternal() {
+async function getPopularProductsInternal(productIds?: string[]) {
   try {
     if (!prisma) {
       console.warn("Prisma client not available")
       return []
     }
 
-    // Fetch products - limit to 4 to reduce page size
+    const whereClause: any = {
+      isActive: true,
+      stock: {
+        gt: 0, // Only products in stock
+      },
+    }
+
+    // If product IDs are provided and not empty, use them; otherwise, fetch latest
+    if (productIds && Array.isArray(productIds) && productIds.length > 0) {
+      whereClause.id = { in: productIds }
+    }
+
+    // Limit to maximum 4 products to reduce page size
+    const maxProducts = (productIds && Array.isArray(productIds) && productIds.length > 0)
+      ? Math.min(productIds.length, 4)
+      : 4
+
     const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        stock: {
-          gt: 0, // Only products in stock
-        },
-      },
-      take: 4, // Limited to 4 products to reduce page size
-      orderBy: {
-        createdAt: "desc", // Latest products first
-      },
+      where: whereClause,
+      take: maxProducts,
+      orderBy: productIds && productIds.length > 0 
+        ? undefined // No specific order when using selected IDs
+        : {
+            createdAt: "desc", // Latest products first when no IDs specified
+          },
       select: {
         id: true,
         nameFr: true,
@@ -207,6 +220,13 @@ async function getPopularProductsInternal() {
         imageUrl: true,
       },
     })
+
+    // If product IDs were provided, sort them in the order specified
+    if (productIds && Array.isArray(productIds) && productIds.length > 0) {
+      return productIds
+        .map((id) => products.find((product) => product.id === id))
+        .filter((product): product is NonNullable<typeof product> => product !== undefined)
+    }
     
     return products
   } catch (error: any) {
@@ -239,8 +259,8 @@ async function getFeaturedCategories(categoryIds?: string[]) {
   return getFeaturedCategoriesCached(categoryIds)
 }
 
-async function getPopularProducts() {
-  return getPopularProductsCached()
+async function getPopularProducts(productIds?: string[]) {
+  return getPopularProductsCached(productIds)
 }
 
 export default async function HomePage() {
@@ -254,7 +274,9 @@ export default async function HomePage() {
     const categoryIds = homepageContent.categories?.categoryIds
     // Always fetch categories - if categoryIds is empty/undefined, it will fetch first 8
     featuredCategories = await getFeaturedCategories(categoryIds)
-    popularProducts = await getPopularProducts()
+    // Get productIds from homepage content, but ensure we always fetch products if none specified
+    const productIds = homepageContent.products?.productIds
+    popularProducts = await getPopularProducts(productIds)
   } catch (error: any) {
     // Silently handle errors during build time - pages will render at runtime
     // Check if it's a database connection error (common during build)
@@ -303,6 +325,7 @@ export default async function HomePage() {
     subtitle: "Découvrez nos produits les plus récents",
     actionLabel: "Voir tous les produits",
     actionHref: "/categories",
+    productIds: [], // Array of product IDs to display
   }
 
   const promosContent = homepageContent.promos || {

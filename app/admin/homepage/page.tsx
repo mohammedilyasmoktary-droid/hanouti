@@ -26,6 +26,15 @@ interface Category {
   imageUrl: string | null
 }
 
+interface Product {
+  id: string
+  nameFr: string
+  nameAr: string | null
+  slug: string
+  imageUrl: string | null
+  price: number
+}
+
 export default function AdminHomepagePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -34,10 +43,12 @@ export default function AdminHomepagePage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [contents, setContents] = useState<Record<string, HomepageContent>>({})
   const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([])
 
   useEffect(() => {
     loadContent()
     loadCategories()
+    loadProducts()
   }, [])
 
   const loadCategories = async () => {
@@ -51,6 +62,20 @@ export default function AdminHomepagePage() {
       }
     } catch (error) {
       console.error("Error loading categories:", error)
+    }
+  }
+
+  const loadProducts = async () => {
+    try {
+      const res = await fetch("/api/admin/products?limit=100")
+      if (res.ok) {
+        const data = await res.json()
+        // Filter to only active products
+        const activeProducts = data.products?.filter((product: any) => product.isActive) || []
+        setAvailableProducts(activeProducts)
+      }
+    } catch (error) {
+      console.error("Error loading products:", error)
     }
   }
 
@@ -96,6 +121,7 @@ export default function AdminHomepagePage() {
           subtitle: "Découvrez nos produits les plus récents",
           actionLabel: "Voir tous les produits",
           actionHref: "/categories",
+          productIds: [], // Array of product IDs to display
         }
       case "promos":
         return {
@@ -411,7 +437,7 @@ export default function AdminHomepagePage() {
           <Card>
             <CardHeader>
               <CardTitle>Section Produits populaires</CardTitle>
-              <CardDescription>Personnalisez le titre et l'action de la section produits</CardDescription>
+              <CardDescription>Personnalisez le titre, l'action et sélectionnez les produits à afficher</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -440,6 +466,58 @@ export default function AdminHomepagePage() {
                   onChange={(e) => updateContent("products", { actionLabel: e.target.value })}
                   placeholder="Voir tous les produits"
                 />
+              </div>
+              <div>
+                <Label className="mb-3 block">Produits à afficher</Label>
+                <div className="border rounded-lg p-4 max-h-96 overflow-y-auto space-y-3">
+                  {availableProducts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Chargement des produits...</p>
+                  ) : (
+                    availableProducts.map((product) => {
+                      const selectedIds = products.data.productIds || []
+                      const isSelected = selectedIds.includes(product.id)
+                      return (
+                        <div key={product.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`product-${product.id}`}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              const currentIds = products.data.productIds || []
+                              const newIds = checked
+                                ? [...currentIds, product.id]
+                                : currentIds.filter((id: string) => id !== product.id)
+                              updateContent("products", { productIds: newIds })
+                            }}
+                          />
+                          <label
+                            htmlFor={`product-${product.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 flex items-center gap-2"
+                          >
+                            {product.imageUrl && (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.nameFr}
+                                className="w-10 h-10 object-cover rounded"
+                              />
+                            )}
+                            <div>
+                              <div>{product.nameFr}</div>
+                              {product.nameAr && (
+                                <span className="text-xs text-muted-foreground">({product.nameAr})</span>
+                              )}
+                              <span className="text-xs text-muted-foreground ml-2">
+                                - {product.price} MAD
+                              </span>
+                            </div>
+                          </label>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Sélectionnez les produits à afficher sur la page d&apos;accueil (maximum 4 recommandé)
+                </p>
               </div>
               <Button onClick={() => saveSection("products")} disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

@@ -30,7 +30,43 @@ interface CSVRow {
 
 function parseCSV(filePath: string): CSVRow[] {
   const content = fs.readFileSync(filePath, "utf-8")
-  const lines = content.split("\n").filter((line) => line.trim() !== "")
+  
+  if (content.length === 0) {
+    return []
+  }
+  
+  // Use a more robust CSV parser that handles multi-line fields and base64 images
+  const lines: string[] = []
+  let currentLine = ""
+  let inQuotes = false
+  
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i]
+    const nextChar = content[i + 1]
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Escaped quote
+        currentLine += '"'
+        i++ // Skip next quote
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes
+        currentLine += char
+      }
+    } else if (char === '\n' && !inQuotes) {
+      // End of line (not in quotes)
+      lines.push(currentLine)
+      currentLine = ""
+    } else {
+      currentLine += char
+    }
+  }
+  
+  // Add last line
+  if (currentLine.trim() !== "") {
+    lines.push(currentLine)
+  }
   
   if (lines.length === 0) {
     return []
@@ -40,12 +76,53 @@ function parseCSV(filePath: string): CSVRow[] {
   const rows: CSVRow[] = []
   
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(",").map((v) => v.trim().replace(/^"|"$/g, ""))
+    const line = lines[i]
+    const values: string[] = []
+    let currentValue = ""
+    let inQuotes = false
+    
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j]
+      const nextChar = line[j + 1]
+      
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentValue += '"'
+          j++
+        } else {
+          inQuotes = !inQuotes
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(currentValue.trim())
+        currentValue = ""
+      } else {
+        currentValue += char
+      }
+    }
+    values.push(currentValue.trim()) // Last value
+    
     const row: CSVRow = {}
     headers.forEach((header, index) => {
-      row[header] = values[index] || ""
+      let value = values[index] || ""
+      // Remove surrounding quotes
+      if (value.startsWith('"') && value.endsWith('"')) {
+        value = value.slice(1, -1).replace(/""/g, '"')
+      }
+      
+      // Skip base64 images in imageUrl field - they're too large for database
+      if (header === "imageUrl" || header === "imageurl") {
+        if (value && (value.startsWith("data:image") || value.length > 2000)) {
+          value = "" // Skip base64 images
+        }
+      }
+      
+      row[header] = value
     })
-    rows.push(row)
+    
+    // Only add row if it has required fields
+    if (row.nameFr || row.namefr) {
+      rows.push(row)
+    }
   }
   
   return rows
