@@ -471,7 +471,7 @@ export default function AdminHomepagePage() {
                 />
               </div>
               <div>
-                <Label className="mb-3 block">Produits à afficher</Label>
+                <Label className="mb-3 block">Produits à afficher ({availableProducts.length} produits disponibles)</Label>
                 <div className="border rounded-lg p-4 max-h-96 overflow-y-auto space-y-3">
                   {availableProducts.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Chargement des produits...</p>
