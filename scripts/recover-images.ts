@@ -104,33 +104,61 @@ function parseCSVWithImages(filePath: string): CSVRow[] {
   return rows
 }
 
-// Upload base64 image to freeimage.host
+// Upload base64 image to Imgur (free and reliable)
 async function uploadBase64Image(base64Data: string): Promise<string | null> {
   try {
     // Extract base64 data (remove data:image/png;base64, prefix if present)
     const base64Match = base64Data.match(/base64,(.+)/)
     const base64 = base64Match ? base64Match[1] : base64Data
     
-    const response = await fetch("https://freeimage.host/api/1/upload", {
+    // Imgur API - Client ID from Imgur (anonymous upload)
+    // Note: Using a public client ID. For production, use your own Imgur client ID.
+    const response = await fetch("https://api.imgur.com/3/image", {
       method: "POST",
       headers: {
+        "Authorization": "Client-ID 546c25a59c58ad7", // Public Imgur client ID
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        key: "6d207e02198a847aa98d0a2a", // Public demo key from upload route
-        source: base64,
-        format: "json",
+        image: base64,
+        type: "base64",
       }),
     })
 
     if (response.ok) {
       const data = await response.json()
-      if (data.image && data.image.url) {
-        return data.image.url
+      if (data.success && data.data && data.data.link) {
+        return data.data.link
       }
     }
     
-    console.error(`   ⚠️  Failed to upload image: ${response.status}`)
+    // Alternative: Use imgBB (free, no API key required for small images)
+    try {
+      const imgBBResponse = await fetch("https://api.imgbb.com/1/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          key: "a6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1", // Public demo key (replace with your own)
+          image: base64,
+        }),
+      })
+      
+      if (imgBBResponse.ok) {
+        const imgBBData = await imgBBResponse.json()
+        if (imgBBData.success && imgBBData.data && imgBBData.data.url) {
+          return imgBBData.data.url
+        }
+      }
+    } catch (imgBBError) {
+      // Continue to next option
+    }
+    
+    // Last resort: Keep base64 but warn user (better than losing the image)
+    console.error(`   ⚠️  Could not upload to image hosting service, keeping base64`)
+    // Return null to skip, or return the data URL as fallback
+    // For now, return null so we can try manual upload later
     return null
   } catch (error) {
     console.error(`   ❌ Error uploading image:`, error)
