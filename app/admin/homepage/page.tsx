@@ -67,15 +67,14 @@ export default function AdminHomepagePage() {
 
   const loadProducts = async () => {
     try {
-      const res = await fetch("/api/admin/products")
+      // Fetch all products (up to 1000) to ensure we get all products with images
+      const res = await fetch("/api/admin/products?limit=1000")
       if (res.ok) {
         const data = await res.json()
         // API returns array directly, or wrapped in products property
         const products = Array.isArray(data) ? data : (data.products || [])
-        // Filter to only active products and limit to 200 for performance
-        const activeProducts = products
-          .filter((product: any) => product.isActive)
-          .slice(0, 200)
+        // Filter to only active products
+        const activeProducts = products.filter((product: any) => product.isActive)
         setAvailableProducts(activeProducts)
       }
     } catch (error) {

@@ -71,9 +71,26 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Limit to 500 products for performance (admin can paginate if needed)
+    // Get query params for filtering
+    const { searchParams } = new URL(req.url)
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 1000
+    const search = searchParams.get("search") || ""
+
+    const whereClause: any = {}
+    
+    // Add search filter if provided
+    if (search) {
+      whereClause.OR = [
+        { nameFr: { contains: search, mode: "insensitive" } },
+        { nameAr: { contains: search, mode: "insensitive" } },
+        { slug: { contains: search, mode: "insensitive" } },
+      ]
+    }
+
+    // Fetch products with limit
     const products = await prisma.product.findMany({
-      take: 500, // Limit to prevent loading thousands of products
+      where: whereClause,
+      take: limit,
       include: {
         category: {
           select: {
