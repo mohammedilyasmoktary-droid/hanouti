@@ -78,12 +78,20 @@ async function importCategories() {
           nameFr: row.nameFr || row.namefr || "",
           nameAr: row.nameAr || row.namear || null,
           slug: row.slug || "",
-          imageUrl: row.imageUrl || row.imageurl || null,
+          imageUrl: (() => {
+            const url = row.imageUrl || row.imageurl || null;
+            // Skip base64 images that are too large (PostgreSQL index limit is 8KB)
+            // Only keep URLs, not base64 data
+            if (url && url.length > 5000) {
+              return null; // Skip very long strings (likely base64 images)
+            }
+            return url;
+          })(),
           parentId: null,
           sortOrder: parseInt(row.sortOrder || row.sortorder || "0") || 0,
           isActive: row.isActive === "true" || row.isactive === "true" || row.isActive === "1" || true,
-          createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
-          updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
+          createdAt: row.createdAt && row.createdAt !== "Invalid Date" && !isNaN(new Date(row.createdAt).getTime()) ? new Date(row.createdAt) : new Date(),
+          updatedAt: row.updatedAt && row.updatedAt !== "Invalid Date" && !isNaN(new Date(row.updatedAt).getTime()) ? new Date(row.updatedAt) : new Date(),
         },
       })
       console.log(`   ✅ Imported category: ${row.nameFr || row.namefr}`)
@@ -105,12 +113,20 @@ async function importCategories() {
           nameFr: row.nameFr || row.namefr || "",
           nameAr: row.nameAr || row.namear || null,
           slug: row.slug || "",
-          imageUrl: row.imageUrl || row.imageurl || null,
+          imageUrl: (() => {
+            const url = row.imageUrl || row.imageurl || null;
+            // Skip base64 images that are too large (PostgreSQL index limit is 8KB)
+            // Only keep URLs, not base64 data
+            if (url && url.length > 5000) {
+              return null; // Skip very long strings (likely base64 images)
+            }
+            return url;
+          })(),
           parentId: row.parentId || row.parentid || null,
           sortOrder: parseInt(row.sortOrder || row.sortorder || "0") || 0,
           isActive: row.isActive === "true" || row.isactive === "true" || row.isActive === "1" || true,
-          createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
-          updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
+          createdAt: row.createdAt && row.createdAt !== "Invalid Date" && !isNaN(new Date(row.createdAt).getTime()) ? new Date(row.createdAt) : new Date(),
+          updatedAt: row.updatedAt && row.updatedAt !== "Invalid Date" && !isNaN(new Date(row.updatedAt).getTime()) ? new Date(row.updatedAt) : new Date(),
         },
       })
       console.log(`   ✅ Imported child category: ${row.nameFr || row.namefr}`)
@@ -147,12 +163,20 @@ async function importProducts() {
           slug: row.slug || "",
           description: row.description || null,
           price: row.price ? parseFloat(row.price) : 0,
-          imageUrl: row.imageUrl || row.imageurl || null,
+          imageUrl: (() => {
+            const url = row.imageUrl || row.imageurl || null;
+            // Skip base64 images that are too large (PostgreSQL index limit is 8KB)
+            // Only keep URLs, not base64 data
+            if (url && url.length > 5000) {
+              return null; // Skip very long strings (likely base64 images)
+            }
+            return url;
+          })(),
           categoryId: row.categoryId || row.categoryid || "",
           isActive: row.isActive === "true" || row.isactive === "true" || row.isActive === "1" || true,
           stock: parseInt(row.stock || "0") || 0,
-          createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
-          updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
+          createdAt: row.createdAt && row.createdAt !== "Invalid Date" && !isNaN(new Date(row.createdAt).getTime()) ? new Date(row.createdAt) : new Date(),
+          updatedAt: row.updatedAt && row.updatedAt !== "Invalid Date" && !isNaN(new Date(row.updatedAt).getTime()) ? new Date(row.updatedAt) : new Date(),
         },
       })
       console.log(`   ✅ Imported product: ${row.nameFr || row.namefr}`)
@@ -190,8 +214,8 @@ async function importUsers() {
           name: row.name || null,
           password: row.password || "",
           role: (row.role || "CUSTOMER") as "ADMIN" | "CUSTOMER",
-          createdAt: row.createdAt ? new Date(row.createdAt) : new Date(),
-          updatedAt: row.updatedAt ? new Date(row.updatedAt) : new Date(),
+          createdAt: row.createdAt && row.createdAt !== "Invalid Date" && !isNaN(new Date(row.createdAt).getTime()) ? new Date(row.createdAt) : new Date(),
+          updatedAt: row.updatedAt && row.updatedAt !== "Invalid Date" && !isNaN(new Date(row.updatedAt).getTime()) ? new Date(row.updatedAt) : new Date(),
         },
       })
       console.log(`   ✅ Imported user: ${row.email}`)
