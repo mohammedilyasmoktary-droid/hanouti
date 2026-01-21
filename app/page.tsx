@@ -189,14 +189,17 @@ async function getPopularProductsInternal(productIds?: string[]) {
 
     const whereClause: any = {
       isActive: true,
-      stock: {
-        gt: 0, // Only products in stock
-      },
     }
 
     // If product IDs are provided and not empty, use them; otherwise, fetch latest
     if (productIds && Array.isArray(productIds) && productIds.length > 0) {
       whereClause.id = { in: productIds }
+      // Don't filter by stock if specific products are selected - show them even if out of stock
+    } else {
+      // Only filter by stock when showing latest products (not selected ones)
+      whereClause.stock = {
+        gt: 0, // Only products in stock
+      }
     }
 
     // Limit to maximum 4 products to reduce page size
