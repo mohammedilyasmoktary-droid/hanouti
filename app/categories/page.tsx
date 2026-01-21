@@ -44,20 +44,8 @@ async function getCategories() {
       },
     })
     
-    // Log result for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Categories Page] Fetched ${categories.length} active categories`)
-      if (categories.length === 0) {
-        // Check if there are any categories at all (even inactive)
-        const totalCategories = await prisma.category.count({
-          where: { parentId: null }
-        })
-        const activeCategories = await prisma.category.count({
-          where: { parentId: null, isActive: true }
-        })
-        console.log(`[Categories Page] Total categories: ${totalCategories}, Active: ${activeCategories}`)
-      }
-    }
+    // Removed diagnostic queries - they consume egress quota unnecessarily
+    // Only log in development if needed for debugging
     
     return categories
   } catch (error: any) {
@@ -103,21 +91,8 @@ export default async function CategoriesPage() {
         categories = []
       }
       
-      // Diagnostic: Check if we can query the database at all
-      // (Only in development to avoid extra queries in production)
-      if (process.env.NODE_ENV === 'development' && categories.length === 0 && prisma) {
-        try {
-          totalCategoriesCount = await prisma.category.count({
-            where: { parentId: null }
-          })
-          if (totalCategoriesCount > 0) {
-            console.warn(`[Categories Page] Found ${totalCategoriesCount} total categories but 0 active. Categories may be inactive.`)
-          }
-        } catch (diagError) {
-          hasConnectionIssue = true
-          console.error("[Categories Page] Diagnostic query failed:", diagError)
-        }
-      }
+      // Removed diagnostic queries - they consume egress quota unnecessarily
+      // Only check in development if needed for debugging
     } catch (error: any) {
       // Handle errors gracefully - always return empty array to prevent 404
       hasConnectionIssue = true

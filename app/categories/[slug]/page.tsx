@@ -9,9 +9,9 @@ import { Package, ShoppingCart, ChevronRight } from "lucide-react"
 import { ProductCard } from "@/components/cart/product-card"
 import { Container } from "@/components/ui/container"
 
-// Use ISR with 60s revalidation for better performance
-// Products update every minute while keeping fast page loads
-export const revalidate = 60
+// Use ISR with 1 hour revalidation to drastically reduce database queries
+// This reduces egress usage significantly while still allowing updates
+export const revalidate = 3600 // 1 hour cache - reduces database queries by 60x
 
 async function getCategory(slug: string) {
   try {

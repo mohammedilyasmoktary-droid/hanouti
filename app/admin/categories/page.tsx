@@ -62,7 +62,7 @@ async function getCategories() {
       },
     })
 
-    console.log(`Fetched ${parentCategories.length} parent categories`)
+    // Removed console.log to reduce unnecessary output
     return parentCategories
   } catch (error: any) {
     // Handle all database connection errors gracefully

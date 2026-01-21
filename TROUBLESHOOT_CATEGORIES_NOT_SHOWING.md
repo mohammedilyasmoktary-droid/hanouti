@@ -153,3 +153,4 @@ const categories = await prisma.category.findMany({
 
 The diagnostic messages added to the categories page (in development) will help identify the specific issue.
 
+

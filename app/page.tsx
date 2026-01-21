@@ -12,9 +12,9 @@ import { CategoryCard } from "@/components/cards/category-card"
 import { ProductCard } from "@/components/cart/product-card"
 import { Card, CardContent } from "@/components/ui/card"
 
-// Use ISR with 60s revalidation for better performance
-// Page is optimized to stay under Vercel's size limits
-export const revalidate = 60
+// Use ISR with 1 hour revalidation to drastically reduce database queries
+// This reduces egress usage significantly while still allowing updates
+export const revalidate = 3600 // 1 hour cache - reduces database queries by 60x
 
 async function getHomepageContent() {
   try {
