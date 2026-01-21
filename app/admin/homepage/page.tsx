@@ -222,7 +222,21 @@ export default function AdminHomepagePage() {
           ...prev,
           [section]: saved,
         }))
-        setTimeout(() => setSuccess(null), 3000)
+        
+        // Revalidate homepage cache if products or categories were updated
+        if (section === "products" || section === "categories") {
+          try {
+            await fetch("/api/revalidate?path=/&secret=revalidate-2024", {
+              method: "GET",
+            })
+            setSuccess(`Section "${section}" enregistrée et page d'accueil mise à jour !`)
+          } catch (revalidateError) {
+            console.error("Error revalidating cache:", revalidateError)
+            // Don't show error to user, saving was successful
+          }
+        }
+        
+        setTimeout(() => setSuccess(null), 5000)
       } else {
         const errorData = await res.json()
         setError(errorData.error || "Erreur lors de l'enregistrement")
