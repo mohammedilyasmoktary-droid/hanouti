@@ -14,12 +14,13 @@ export function FloatingCartButton() {
   const [justAdded, setJustAdded] = useState(false)
   const [prevItemCount, setPrevItemCount] = useState(0)
 
-  // Hide on cart page
+  // Hide on cart page and admin pages
   const isCartPage = pathname === "/cart"
+  const isAdminPage = pathname?.startsWith("/admin")
 
   // Show button when cart has items
   useEffect(() => {
-    if (itemCount > 0 && !isCartPage) {
+    if (itemCount > 0 && !isCartPage && !isAdminPage) {
       setIsVisible(true)
       // Trigger animation when item count increases
       if (itemCount > prevItemCount) {
@@ -31,10 +32,10 @@ export function FloatingCartButton() {
     } else {
       setIsVisible(false)
     }
-  }, [itemCount, isCartPage, prevItemCount])
+  }, [itemCount, isCartPage, isAdminPage, prevItemCount])
 
-  // Don't render on cart page
-  if (isCartPage) return null
+  // Don't render on cart page or admin pages
+  if (isCartPage || isAdminPage) return null
 
   return (
     <Link
