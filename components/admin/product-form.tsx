@@ -106,7 +106,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       })
 
       if (res.ok) {
-        router.push("/admin/products")
+        router.back()
         router.refresh()
       } else {
         const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }))

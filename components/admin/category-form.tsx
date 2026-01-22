@@ -119,7 +119,7 @@ export function CategoryForm({ category, parentCategories }: CategoryFormProps) 
       }
 
       // Success - redirect and refresh
-      router.push("/admin/categories")
+      router.back()
       router.refresh()
     } catch (error) {
       console.error("Error saving category:", error)
