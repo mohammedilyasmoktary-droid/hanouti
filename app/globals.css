@@ -4,30 +4,37 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Direct color definitions for Tailwind v4 - Grocery store theme */
+  /* Design Tokens - Grocery Store Theme with Warmth */
+  /* Primary: Green (fresh, trustworthy) */
   --color-primary: oklch(0.52 0.16 150); /* Forest green - fresh but professional */
   --color-primary-foreground: oklch(0.99 0 0); /* Pure white for contrast */
   
-  --color-background: oklch(0.99 0.002 106); /* Slightly warm white */
+  /* Secondary: Warm cream/off-white backgrounds */
+  --color-background: oklch(0.988 0.003 90); /* Warm off-white cream */
   --color-foreground: oklch(0.18 0.004 250); /* Dark warm gray for text */
   
-  --color-card: oklch(1 0 0); /* Pure white */
+  --color-card: oklch(0.998 0.001 90); /* Slightly warmer white for cards */
   --color-card-foreground: oklch(0.18 0.004 250);
   
-  --color-popover: oklch(1 0 0);
+  --color-popover: oklch(0.998 0.001 90);
   --color-popover-foreground: oklch(0.18 0.004 250);
   
-  --color-secondary: oklch(0.96 0.003 106); /* Very light warm gray */
+  --color-secondary: oklch(0.97 0.004 90); /* Warm cream gray */
   --color-secondary-foreground: oklch(0.22 0.004 250); /* Dark warm gray */
   
-  --color-muted: oklch(0.97 0.002 106); /* Light warm gray */
+  --color-muted: oklch(0.975 0.003 90); /* Light warm cream */
   --color-muted-foreground: oklch(0.45 0.004 250); /* Medium warm gray */
   
-  --color-accent: oklch(0.96 0.01 150); /* Very light green-tinted gray */
-  --color-accent-foreground: oklch(0.22 0.004 250);
+  /* Accent: Soft orange/yellow for highlights (appetite appeal) */
+  --color-accent: oklch(0.95 0.02 75); /* Soft warm yellow-orange tint */
+  --color-accent-foreground: oklch(0.25 0.01 50); /* Dark warm for contrast */
   
-  --color-border: oklch(0.92 0.002 106); /* Light warm border */
-  --color-input: oklch(0.94 0.002 106); /* Slightly darker for input backgrounds */
+  /* Appetite accent color for special highlights */
+  --color-appetite: oklch(0.75 0.12 65); /* Soft orange for badges/highlights */
+  --color-appetite-foreground: oklch(0.99 0 0); /* White text */
+  
+  --color-border: oklch(0.92 0.003 90); /* Light warm border */
+  --color-input: oklch(0.98 0.002 90); /* Warm input background */
   --color-ring: oklch(0.52 0.16 150); /* Primary green for focus rings */
   
   --color-destructive: oklch(0.55 0.22 25); /* Warm red */
@@ -39,18 +46,25 @@
   --color-chart-4: oklch(0.828 0.189 84.429);
   --color-chart-5: oklch(0.769 0.188 70.08);
   
-  --color-sidebar: oklch(0.98 0.002 106); /* Light warm background */
+  --color-sidebar: oklch(0.985 0.002 90); /* Light warm background */
   --color-sidebar-foreground: oklch(0.18 0.004 250);
   --color-sidebar-primary: oklch(0.52 0.16 150);
   --color-sidebar-primary-foreground: oklch(0.99 0 0);
-  --color-sidebar-accent: oklch(0.96 0.01 150);
-  --color-sidebar-accent-foreground: oklch(0.22 0.004 250);
-  --color-sidebar-border: oklch(0.92 0.002 106);
+  --color-sidebar-accent: oklch(0.95 0.02 75);
+  --color-sidebar-accent-foreground: oklch(0.25 0.01 50);
+  --color-sidebar-border: oklch(0.92 0.003 90);
   --color-sidebar-ring: oklch(0.52 0.16 150);
   
-  --font-sans: var(--font-geist-sans);
+  /* Typography */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
   
+  /* Spacing tokens for consistent rhythm */
+  --spacing-section: 3rem; /* 48px */
+  --spacing-card-gap: 1rem; /* 16px */
+  
+  /* Border radius tokens */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -83,6 +97,9 @@
   
   --accent: var(--color-accent);
   --accent-foreground: var(--color-accent-foreground);
+  
+  --appetite: var(--color-appetite);
+  --appetite-foreground: var(--color-appetite-foreground);
   
   --border: var(--color-border);
   --input: var(--color-input);
@@ -181,17 +198,44 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Better line height for Arabic text */
+    line-height: 1.6;
   }
+  
+  /* Typography hierarchy with improved spacing and Arabic support */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-heading font-semibold tracking-tight;
+    line-height: 1.2; /* Tighter for headings */
+    letter-spacing: -0.02em; /* Slightly tighter letter spacing */
   }
+  
   h1 {
     @apply text-3xl sm:text-4xl lg:text-5xl;
+    line-height: 1.1;
+    margin-bottom: 1rem;
   }
+  
   h2 {
     @apply text-2xl sm:text-3xl;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
   }
+  
   h3 {
     @apply text-xl sm:text-2xl;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Better spacing for paragraphs and Arabic text */
+  p {
+    line-height: 1.7; /* More breathing room for bilingual content */
+    margin-bottom: 1em;
+  }
+  
+  /* Arabic text support */
+  [dir="rtl"], [lang="ar"] {
+    font-family: var(--font-sans), "Segoe UI", "Arial", sans-serif;
+    line-height: 1.8; /* Extra spacing for Arabic */
   }
 }

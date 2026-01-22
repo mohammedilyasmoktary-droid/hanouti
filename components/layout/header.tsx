@@ -32,12 +32,13 @@ export function Header() {
             <div className="relative w-full">
               <input
                 type="text"
-                placeholder="Rechercher des produits..."
+                placeholder="lait, tomates, café, pain..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Rechercher des produits"
                 className="w-full px-4 py-2 pl-10 pr-4 border border-input rounded-lg bg-background text-sm shadow-xs hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
             </div>
           </form>
 
@@ -55,10 +56,14 @@ export function Header() {
             <Link href="/contact" className="text-sm font-medium text-foreground hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-accent/50">
               Contact
             </Link>
-            <Link href="/cart" className="relative p-2 rounded-md hover:bg-accent/50 transition-colors">
-              <ShoppingCart className="h-5 w-5 text-foreground hover:text-primary transition-colors" />
+            <Link 
+              href="/cart" 
+              className="relative p-2 rounded-md hover:bg-accent/50 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              aria-label={`Panier${itemCount > 0 ? `, ${itemCount} article${itemCount > 1 ? 's' : ''}` : ''}`}
+            >
+              <ShoppingCart className="h-5 w-5 text-foreground hover:text-primary transition-colors" aria-hidden="true" />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md">
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md" aria-hidden="true">
                   {itemCount > 9 ? "9+" : itemCount}
                 </span>
               )}
@@ -86,12 +91,13 @@ export function Header() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Rechercher des produits..."
+                  placeholder="lait, tomates, café, pain..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Rechercher des produits"
                   className="w-full px-4 py-2 pl-10 pr-4 border border-input rounded-lg bg-background text-sm shadow-xs hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
                 />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
               </div>
             </form>
             <nav className="flex flex-col space-y-2 px-2">

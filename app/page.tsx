@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { cache } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Search, ArrowRight, Zap, Shield, CreditCard, Sparkles } from "lucide-react"
+import { Search, ArrowRight, Zap, Shield, CreditCard, Sparkles, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -379,17 +379,20 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/5 via-accent/30 to-primary/5 py-12 sm:py-16">
+        <section className="relative bg-gradient-to-br from-primary/5 via-background to-primary/3 py-12 sm:py-16 overflow-hidden">
+          {/* Subtle pattern overlay for warmth */}
+          <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_30%_20%,_oklch(0.75_0.12_65)_0%,_transparent_50%)]" aria-hidden="true" />
+          
           <Container>
-            <div className="text-center">
-              <h1 className="text-4xl sm:text-5xl font-semibold mb-4 text-zinc-900 tracking-tight">
+            <div className="text-center relative z-10">
+              <h1 className="text-4xl sm:text-5xl font-semibold mb-4 text-foreground tracking-tight">
                 {heroContent.title}
               </h1>
-              <p className="text-base sm:text-lg text-zinc-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
                 {heroContent.subtitle}
               </p>
 
@@ -400,10 +403,11 @@ export default async function HomePage() {
                     <input
                       type="text"
                       name="q"
-                      placeholder={heroContent.searchPlaceholder}
-                      className="w-full px-4 py-3 pl-12 pr-4 rounded-xl border border-zinc-200 bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all text-sm"
+                      placeholder="lait, tomates, café, pain..."
+                      aria-label="Rechercher des produits"
+                      className="w-full px-4 py-3 pl-12 pr-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all text-sm"
                     />
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-400" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   </div>
                   <Button type="submit" size="lg" className="rounded-xl">
                     Rechercher
@@ -414,15 +418,41 @@ export default async function HomePage() {
               <Link href="/categories">
                 <Button size="lg" variant="default" className="text-base px-8 rounded-xl">
                   {heroContent.ctaText}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Button>
               </Link>
+            </div>
+            
+            {/* Trust Badges */}
+            <div className="mt-12 sm:mt-16 relative z-10">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div className="flex flex-col items-center text-center p-4 rounded-xl bg-card/60 backdrop-blur-sm border border-border/50 shadow-sm">
+                  <Zap className="h-6 w-6 text-primary mb-2" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-foreground mb-1">Livraison le jour même</span>
+                  <span className="text-xs text-muted-foreground">À Casablanca</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-4 rounded-xl bg-card/60 backdrop-blur-sm border border-border/50 shadow-sm">
+                  <Sparkles className="h-6 w-6 text-primary mb-2" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-foreground mb-1">Produits frais</span>
+                  <span className="text-xs text-muted-foreground">Qualité garantie</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-4 rounded-xl bg-card/60 backdrop-blur-sm border border-border/50 shadow-sm">
+                  <Shield className="h-6 w-6 text-primary mb-2" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-foreground mb-1">Paiement sécurisé</span>
+                  <span className="text-xs text-muted-foreground">À la livraison</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-4 rounded-xl bg-card/60 backdrop-blur-sm border border-border/50 shadow-sm">
+                  <Package className="h-6 w-6 text-primary mb-2" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-foreground mb-1">Magasins locaux</span>
+                  <span className="text-xs text-muted-foreground">100% marocain</span>
+                </div>
+              </div>
             </div>
           </Container>
         </section>
 
         {/* Featured Categories Section */}
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-background">
           <Container>
             <SectionHeader
               title={categoriesContent.title}
@@ -442,9 +472,9 @@ export default async function HomePage() {
                 ))}
               </div>
             ) : (
-              <Card className="border-zinc-200/60 rounded-2xl shadow-sm">
+              <Card className="border-border rounded-2xl shadow-sm">
                 <CardContent className="py-12 text-center">
-                  <p className="text-sm text-zinc-600">
+                  <p className="text-sm text-muted-foreground">
                     Les catégories seront bientôt disponibles.
                   </p>
                 </CardContent>
@@ -454,7 +484,7 @@ export default async function HomePage() {
         </section>
 
         {/* Popular Products Section */}
-        <section className="py-12 bg-zinc-50 border-t border-zinc-200">
+        <section className="py-12 bg-muted/30 border-t border-border">
           <Container>
             <SectionHeader
               title={productsContent.title}
@@ -480,9 +510,9 @@ export default async function HomePage() {
                 ))}
               </div>
             ) : (
-              <Card className="border-zinc-200/60 rounded-2xl shadow-sm">
+              <Card className="border-border rounded-2xl shadow-sm">
                 <CardContent className="py-12 text-center">
-                  <p className="text-sm text-zinc-600 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Aucun produit disponible pour le moment.
                   </p>
                   <Link href="/categories">
@@ -497,13 +527,13 @@ export default async function HomePage() {
         </section>
 
         {/* Promos & Bons plans Section */}
-        <section className="py-12 bg-white border-t border-zinc-200">
+        <section className="py-12 bg-background border-t border-border">
           <Container>
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold tracking-tight mb-1 text-zinc-900">
+              <h2 className="text-2xl font-semibold tracking-tight mb-1 text-foreground">
                 {promosContent.title}
               </h2>
-              <p className="text-sm text-zinc-600">
+              <p className="text-sm text-muted-foreground">
                 {promosContent.subtitle}
               </p>
             </div>
@@ -515,26 +545,26 @@ export default async function HomePage() {
                 const IconComponent = index === 0 ? Sparkles : Zap
 
                 return (
-                  <Card key={index} className={`border-zinc-200/60 rounded-2xl shadow-sm overflow-hidden bg-gradient-to-br ${gradientClass}`}>
+                  <Card key={index} className={`border-border rounded-2xl shadow-sm overflow-hidden bg-gradient-to-br ${gradientClass}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 ${badgeClass}`}>
-                            <IconComponent className={`h-4 w-4 ${isPrimary ? "text-primary" : "text-green-600"}`} />
-                            <span className={`text-xs font-semibold ${isPrimary ? "text-primary" : "text-green-700"}`}>{promo.badge}</span>
+                            <IconComponent className={`h-4 w-4 ${isPrimary ? "text-primary" : "text-primary"}`} aria-hidden="true" />
+                            <span className={`text-xs font-semibold ${isPrimary ? "text-primary" : "text-primary"}`}>{promo.badge}</span>
                           </div>
-                          <h3 className="text-xl font-semibold mb-2 text-zinc-900">
+                          <h3 className="text-xl font-semibold mb-2 text-foreground">
                             {promo.title}
                           </h3>
-                          <p className="text-sm text-zinc-600 mb-4">
+                          <p className="text-sm text-muted-foreground mb-4">
                             {promo.description}
                           </p>
                         </div>
                       </div>
                       <Link href={promo.buttonLink || "/categories"}>
-                        <Button className={isPrimary ? "w-full rounded-xl" : "w-full rounded-xl border-green-200 hover:bg-green-50"} variant={isPrimary ? "default" : "outline"} size="lg">
+                        <Button className="w-full rounded-xl" variant={isPrimary ? "default" : "outline"} size="lg">
                           {promo.buttonText}
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                         </Button>
                       </Link>
                     </CardContent>
@@ -546,13 +576,13 @@ export default async function HomePage() {
         </section>
 
         {/* Pourquoi Hanouti Section */}
-        <section className="py-12 bg-zinc-50 border-t border-zinc-200">
+        <section className="py-12 bg-muted/30 border-t border-border">
           <Container>
             <div className="mb-8 text-center">
-              <h2 className="text-2xl font-semibold tracking-tight mb-1 text-zinc-900">
+              <h2 className="text-2xl font-semibold tracking-tight mb-1 text-foreground">
                 {trustContent.title}
               </h2>
-              <p className="text-sm text-zinc-600">
+              <p className="text-sm text-muted-foreground">
                 {trustContent.subtitle}
               </p>
             </div>
@@ -567,11 +597,11 @@ export default async function HomePage() {
 
                 return (
                   <div key={index} className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
                       <IconComponent className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-base mb-2 text-zinc-900">{badge.title}</h3>
-                    <p className="text-sm text-zinc-600">
+                    <h3 className="font-semibold text-base mb-2 text-foreground">{badge.title}</h3>
+                    <p className="text-sm text-muted-foreground">
                       {badge.description}
                     </p>
                   </div>

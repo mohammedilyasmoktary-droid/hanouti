@@ -42,22 +42,22 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
   const isOutOfStock = product.stock !== undefined && product.stock <= 0
 
   return (
-    <div className="bg-white border border-zinc-200/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full flex flex-col group focus-within:ring-2 focus-within:ring-primary/10">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full flex flex-col group focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2">
       {/* Product Image - Fixed Square Aspect Ratio */}
-      <Link href={`/products/${product.slug}`} className="block">
-        <div className="aspect-square bg-zinc-50 overflow-hidden relative">
+      <Link href={`/products/${product.slug}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-t-2xl" aria-label={`Voir ${product.nameFr}`}>
+        <div className="aspect-square bg-muted overflow-hidden relative">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
               alt={product.nameFr}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-zinc-100">
-              <Package className="h-10 w-10 text-zinc-400" />
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <Package className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
             </div>
           )}
         </div>
@@ -65,8 +65,8 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
 
       {/* Product Info - Content pinned to bottom */}
       <div className="p-4 flex-1 flex flex-col">
-        <Link href={`/products/${product.slug}`}>
-          <h3 className="font-medium text-sm text-zinc-900 mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+        <Link href={`/products/${product.slug}`} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+          <h3 className="font-medium text-sm text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-relaxed">
             {product.nameFr}
           </h3>
         </Link>
@@ -94,8 +94,9 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
               onClick={handleAddToCart}
               disabled={isAdding}
               variant="default"
+              aria-label={`Ajouter ${product.nameFr} au panier`}
             >
-              <ShoppingCart className="mr-2 h-4 w-4" />
+              <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
               {isAdding ? "Ajouté !" : "Ajouter"}
             </Button>
           )}
