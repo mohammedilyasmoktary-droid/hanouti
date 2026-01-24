@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -63,6 +63,11 @@ export function ProductsList({
     loading: false,
     error: null,
   })
+
+  // Update products when initialProducts changes (e.g., when page changes)
+  useEffect(() => {
+    setProducts(initialProducts)
+  }, [initialProducts, currentPage])
 
   const handleDelete = (product: Product) => {
     console.log("Delete button clicked for product:", product.nameFr, product.id)

@@ -165,6 +165,7 @@ export default async function AdminProductsPage({
 
       {products.length > 0 ? (
         <ProductsList 
+          key={`products-page-${page}-${categoryId || 'all'}`}
           initialProducts={productsWithNumbers} 
           currentPage={page}
           totalPages={totalPages}
