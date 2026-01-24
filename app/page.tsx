@@ -323,12 +323,15 @@ export default async function HomePage() {
     categoryIds: [], // Array of category IDs to display
   }
 
-  const productsContent = homepageContent.products || {
-    title: "Produits populaires",
-    subtitle: "Découvrez nos produits les plus récents",
-    actionLabel: "Voir tous les produits",
+  const productsContent = {
+    ...(homepageContent.products || {
+      title: "Produits populaires",
+      subtitle: "Découvrez nos produits les plus récents",
+      actionLabel: "Voir tous les produits",
+      productIds: [], // Array of product IDs to display
+    }),
+    // Always use /products for actionHref (override database if it has /categories)
     actionHref: "/products",
-    productIds: [], // Array of product IDs to display
   }
 
   const promosContent = homepageContent.promos || {
