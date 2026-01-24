@@ -123,7 +123,7 @@ export default function AdminHomepagePage() {
           title: "Produits populaires",
           subtitle: "Découvrez nos produits les plus récents",
           actionLabel: "Voir tous les produits",
-          actionHref: "/categories",
+          actionHref: "/products",
           productIds: [], // Array of product IDs to display
         }
       case "promos":
