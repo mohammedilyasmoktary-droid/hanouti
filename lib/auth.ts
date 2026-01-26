@@ -4,8 +4,15 @@ import { headers } from "next/headers"
 import { prisma } from "./prisma"
 import { compare } from "bcryptjs"
 
+// Validate secret is set
+const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+if (!secret || secret === "change-this-in-production") {
+  console.error("[Auth] WARNING: NEXTAUTH_SECRET or AUTH_SECRET is not set or using default value!")
+}
+
 export const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "change-this-in-production",
+  secret: secret || "change-this-in-production",
+  trustHost: true, // Required for NextAuth v5 in production
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -14,39 +21,99 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.log("[Auth] Missing credentials")
+            return null
+          }
+
+          // Normalize email to lowercase to avoid case sensitivity issues
+          const email = (credentials.email as string).toLowerCase().trim()
+          const password = credentials.password as string
+
+          console.log("[Auth] ========== LOGIN ATTEMPT ==========")
+          console.log("[Auth] Email:", email)
+          console.log("[Auth] Password length:", password.length)
+          console.log("[Auth] Database URL present:", !!process.env.DATABASE_URL)
+          console.log("[Auth] Prisma client available:", !!prisma)
+
+          let user
+          try {
+            user = await prisma.user.findUnique({
+              where: { email },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                password: true,
+              },
+            })
+            console.log("[Auth] Database query completed, user found:", !!user)
+            if (user) {
+              console.log("[Auth] User details - Email:", user.email, "Role:", user.role, "Has password:", !!user.password)
+            }
+          } catch (dbError: any) {
+            console.error("[Auth] Database query failed:", dbError)
+            console.error("[Auth] Database error message:", dbError?.message)
+            console.error("[Auth] Database error code:", dbError?.code)
+            throw dbError // Re-throw to be caught by outer catch
+          }
+
+          if (!user) {
+            console.log("[Auth] User not found:", email)
+            return null
+          }
+
+          if (!user.password) {
+            console.log("[Auth] User has no password set:", email)
+            return null
+          }
+
+          console.log("[Auth] User found, checking password...")
+          console.log("[Auth] Password hash length:", user.password?.length || 0)
+
+          let isValid = false
+          try {
+            isValid = await compare(password, user.password)
+            console.log("[Auth] Password comparison result:", isValid)
+            if (!isValid) {
+              console.log("[Auth] Password mismatch - input length:", password.length)
+            }
+          } catch (compareError: any) {
+            console.error("[Auth] Password comparison failed:", compareError)
+            throw compareError
+          }
+
+          if (!isValid) {
+            console.log("[Auth] Invalid password for:", email)
+            return null
+          }
+
+          console.log("[Auth] Login successful for:", email, "Role:", user.role)
+
+          // Return user object in format expected by NextAuth
+          const userObject = {
+            id: user.id,
+            email: user.email,
+            name: user.name || user.email,
+            role: user.role,
+          }
+          
+          console.log("[Auth] Returning user object:", { id: userObject.id, email: userObject.email, role: userObject.role })
+          
+          return userObject
+        } catch (error: any) {
+          console.error("[Auth] ========== AUTHORIZATION ERROR ==========")
+          console.error("[Auth] Error during authorization:", error)
+          console.error("[Auth] Error name:", error?.name)
+          console.error("[Auth] Error message:", error?.message)
+          console.error("[Auth] Error stack:", error?.stack)
+          console.error("[Auth] Error code:", error?.code)
+          console.error("[Auth] =========================================")
+          // Return null so NextAuth handles it as invalid credentials
+          // But log extensively so we can see what's failing
           return null
-        }
-
-        const email = credentials.email as string
-        const password = credentials.password as string
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            password: true,
-          },
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const isValid = await compare(password, user.password)
-
-        if (!isValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name || user.email,
-          role: user.role,
         }
       },
     }),
@@ -56,35 +123,54 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user }: { token: any; user?: any }) {
-      if (user) {
-        token.id = user.id
-        token.role = (user as any).role || "CUSTOMER"
-        token.email = user.email
-        token.name = user.name
+      try {
+        if (user) {
+          token.id = user.id
+          token.role = (user as any).role || "CUSTOMER"
+          token.email = user.email
+          token.name = user.name
+        }
+        return token
+      } catch (error) {
+        console.error("[Auth] Error in jwt callback:", error)
+        return token
       }
-      return token
     },
     async session({ session, token }: { session: any; token: any }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = (token.role as "ADMIN" | "CUSTOMER") || "CUSTOMER"
-        session.user.email = token.email as string
-        session.user.name = token.name as string | null
+      try {
+        if (session.user) {
+          session.user.id = token.id as string
+          session.user.role = (token.role as "ADMIN" | "CUSTOMER") || "CUSTOMER"
+          session.user.email = token.email as string
+          session.user.name = token.name as string | null
+        }
+        return session
+      } catch (error) {
+        console.error("[Auth] Error in session callback:", error)
+        return session
       }
-      return session
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      // Always redirect admin users to /admin
-      if (url.includes("/admin") || url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/admin`
+      try {
+        // Ensure baseUrl is set (required for production)
+        const finalBaseUrl = baseUrl || process.env.NEXTAUTH_URL || "https://hanouti-omega.vercel.app"
+        
+        // Always redirect admin users to /admin
+        if (url.includes("/admin") || url === finalBaseUrl || url === `${finalBaseUrl}/`) {
+          return `${finalBaseUrl}/admin`
+        }
+        if (url.startsWith("/")) {
+          return `${finalBaseUrl}${url}`
+        }
+        if (url.startsWith(finalBaseUrl)) {
+          return url
+        }
+        return finalBaseUrl
+      } catch (error) {
+        console.error("[Auth] Error in redirect callback:", error)
+        const fallbackUrl = process.env.NEXTAUTH_URL || "https://hanouti-omega.vercel.app"
+        return fallbackUrl
       }
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`
-      }
-      if (url.startsWith(baseUrl)) {
-        return url
-      }
-      return baseUrl
     },
   },
   session: {
