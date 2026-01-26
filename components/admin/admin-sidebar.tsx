@@ -87,7 +87,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpe
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => isMobile && setIsOpen(false)}
+              onClick={() => isMobile && setSidebarOpen(false)}
               className={cn(
                 "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all shadow-xs cursor-pointer relative z-10",
                 isActive
