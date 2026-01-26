@@ -67,7 +67,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpe
         }}
       >
       <div className="flex h-16 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 lg:px-6">
-        <Link href="/admin" className="flex items-center space-x-2 group" onClick={() => isMobile && setIsOpen(false)}>
+        <Link href="/admin" className="flex items-center space-x-2 group" onClick={() => isMobile && setSidebarOpen(false)}>
           <span className="text-xl font-bold text-primary group-hover:text-primary/90 transition-colors">Hanouti</span>
           <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium hidden sm:inline">Admin</span>
         </Link>
@@ -112,6 +112,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpe
         })}
       </nav>
     </aside>
+    </>
   )
 }
 
