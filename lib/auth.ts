@@ -29,11 +29,13 @@ export const authOptions = {
 
           // Normalize email to lowercase to avoid case sensitivity issues
           const email = (credentials.email as string).toLowerCase().trim()
-          const password = credentials.password as string
+          // Trim password to avoid whitespace issues
+          const password = (credentials.password as string).trim()
 
           console.log("[Auth] ========== LOGIN ATTEMPT ==========")
           console.log("[Auth] Email:", email)
           console.log("[Auth] Password length:", password.length)
+          console.log("[Auth] Password (first 2 chars):", password.substring(0, 2) + "***")
           console.log("[Auth] Database URL present:", !!process.env.DATABASE_URL)
           console.log("[Auth] Prisma client available:", !!prisma)
 
@@ -72,13 +74,22 @@ export const authOptions = {
 
           console.log("[Auth] User found, checking password...")
           console.log("[Auth] Password hash length:", user.password?.length || 0)
+          console.log("[Auth] Password hash (first 10 chars):", user.password?.substring(0, 10) || "N/A")
 
           let isValid = false
           try {
-            isValid = await compare(password, user.password)
+            // Compare password - ensure both are trimmed
+            const trimmedPassword = password.trim()
+            const trimmedHash = user.password.trim()
+            isValid = await compare(trimmedPassword, trimmedHash)
             console.log("[Auth] Password comparison result:", isValid)
             if (!isValid) {
-              console.log("[Auth] Password mismatch - input length:", password.length)
+              console.log("[Auth] Password mismatch!")
+              console.log("[Auth] Input password length:", trimmedPassword.length)
+              console.log("[Auth] Hash length:", trimmedHash.length)
+              // Try comparing without trim as fallback
+              const isValidNoTrim = await compare(password, user.password)
+              console.log("[Auth] Password comparison (no trim):", isValidNoTrim)
             }
           } catch (compareError: any) {
             console.error("[Auth] Password comparison failed:", compareError)
