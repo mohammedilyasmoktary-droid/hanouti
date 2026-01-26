@@ -78,18 +78,16 @@ export const authOptions = {
 
           let isValid = false
           try {
-            // Compare password - ensure both are trimmed
+            // Compare password - trim password but NEVER trim the hash!
+            // Bcrypt hashes are fixed format and trimming breaks them
             const trimmedPassword = password.trim()
-            const trimmedHash = user.password.trim()
-            isValid = await compare(trimmedPassword, trimmedHash)
+            isValid = await compare(trimmedPassword, user.password)
             console.log("[Auth] Password comparison result:", isValid)
             if (!isValid) {
               console.log("[Auth] Password mismatch!")
               console.log("[Auth] Input password length:", trimmedPassword.length)
-              console.log("[Auth] Hash length:", trimmedHash.length)
-              // Try comparing without trim as fallback
-              const isValidNoTrim = await compare(password, user.password)
-              console.log("[Auth] Password comparison (no trim):", isValidNoTrim)
+              console.log("[Auth] Hash length:", user.password.length)
+              console.log("[Auth] Hash format:", user.password.substring(0, 7))
             }
           } catch (compareError: any) {
             console.error("[Auth] Password comparison failed:", compareError)
