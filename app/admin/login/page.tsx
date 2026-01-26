@@ -30,7 +30,8 @@ export default function AdminLoginPage() {
     try {
       console.log("[Login] Starting login attempt for:", email)
       
-      // Race between signIn and timeout
+      // Use redirect: false to handle errors, then manually redirect on success
+      // This ensures we can show error messages while still properly setting cookies
       const result = await Promise.race([
         signIn("credentials", {
           email,
@@ -57,20 +58,22 @@ export default function AdminLoginPage() {
         return
       }
 
-      if (result?.ok) {
-        console.log("[Login] Success! Redirecting...")
-        // Use router.push for client-side navigation, then reload
-        router.push("/admin")
-        setTimeout(() => {
-          window.location.reload()
-        }, 500)
+      if (result?.ok && result?.url) {
+        console.log("[Login] Success! Redirecting to:", result.url)
+        // Use the URL from NextAuth result - it includes proper callback handling
+        // Small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 200))
+        window.location.href = result.url
         return
       }
 
-      // Unexpected result
-      console.warn("[Login] Unexpected result:", result)
-      setError("Une erreur est survenue. Veuillez réessayer.")
-      setLoading(false)
+      // Fallback: if no URL but ok is true, redirect to admin
+      if (result?.ok) {
+        console.log("[Login] Success! Redirecting to /admin")
+        await new Promise(resolve => setTimeout(resolve, 200))
+        window.location.href = "/admin"
+        return
+      }
     } catch (err: any) {
       console.error("[Login] Exception:", err)
       if (err?.message?.includes("timeout")) {
