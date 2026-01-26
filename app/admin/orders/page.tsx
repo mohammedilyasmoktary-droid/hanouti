@@ -90,10 +90,10 @@ export default async function AdminOrdersPage() {
   const pendingCount = orders.filter((o) => o.status === "PENDING").length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Commandes</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold">Commandes</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Gérez les commandes ({orders.length} commande{orders.length > 1 ? "s" : ""})
         </p>
       </div>

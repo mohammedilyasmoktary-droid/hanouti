@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, ShoppingBag, Settings, ShoppingCart, MessageSquare, Home } from "lucide-react"
+import { useState, useEffect } from "react"
+import { LayoutDashboard, Package, ShoppingBag, Settings, ShoppingCart, MessageSquare, Home, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -15,35 +16,68 @@ const navItems = [
   { href: "/admin/settings", label: "Paramètres", icon: Settings },
 ]
 
-export function AdminSidebar() {
+export function AdminSidebar({ isOpen, setIsOpen }: { isOpen?: boolean; setIsOpen?: (open: boolean) => void }) {
   const pathname = usePathname()
-  
+  const [internalOpen, setInternalOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Use external state if provided, otherwise use internal state
+  const sidebarOpen = isOpen !== undefined ? isOpen : internalOpen
+  const setSidebarOpen = setIsOpen || setInternalOpen
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true) // Always open on desktop
+      } else if (isOpen === undefined) {
+        // Only set internal state if not controlled externally
+        setSidebarOpen(false) // Closed by default on mobile
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [isOpen, setSidebarOpen])
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
   return (
-    <aside
-      className="flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm"
-      style={{
-        backgroundColor: "#ffffff",
-        display: "flex",
-        width: "256px",
-        minWidth: "256px",
-        maxWidth: "256px",
-        flexShrink: 0,
-        position: "fixed",
-        left: 0,
-        top: 0,
-        zIndex: 50,
-        height: "100vh",
-        overflowY: "auto",
-        borderRight: "1px solid #e4e4e7",
-        flexDirection: "column",
-      }}
-    >
-      <div className="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
-        <Link href="/admin" className="flex items-center space-x-2 group">
+    <>
+      {/* Mobile overlay */}
+      {sidebarOpen && isMobile && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "flex w-64 flex-shrink-0 flex-col border-r border-zinc-200 bg-white shadow-sm transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-full overflow-y-auto",
+          isMobile && !sidebarOpen && "-translate-x-full",
+          "lg:translate-x-0 lg:static"
+        )}
+        style={{
+          backgroundColor: "#ffffff",
+          borderRight: "1px solid #e4e4e7",
+        }}
+      >
+      <div className="flex h-16 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 lg:px-6">
+        <Link href="/admin" className="flex items-center space-x-2 group" onClick={() => isMobile && setIsOpen(false)}>
           <span className="text-xl font-bold text-primary group-hover:text-primary/90 transition-colors">Hanouti</span>
-          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Admin</span>
+          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium hidden sm:inline">Admin</span>
         </Link>
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden p-2 rounded-md hover:bg-zinc-100 transition-colors"
+          aria-label="Toggle menu"
+        >
+          <X className="h-5 w-5 text-zinc-700" />
+        </button>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
@@ -53,6 +87,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => isMobile && setIsOpen(false)}
               className={cn(
                 "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all shadow-xs cursor-pointer relative z-10",
                 isActive

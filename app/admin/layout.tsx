@@ -1,7 +1,6 @@
 import { headers } from "next/headers"
 import { getServerSession } from "@/lib/auth"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { AdminTopbar } from "@/components/admin/admin-topbar"
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper"
 
 export const dynamic = "force-dynamic"
 
@@ -37,31 +36,7 @@ export default async function AdminLayout({
 
     // If no session or not admin, middleware should have redirected
     // But if we get here, show layout anyway (middleware handles auth)
-    // Always show the layout with sidebar - middleware protects the routes
-    return (
-      <div 
-        style={{ 
-          display: "flex",
-          flexDirection: "row",
-          width: "100%",
-          minHeight: "100vh",
-        }}
-      >
-        <AdminSidebar />
-        <div 
-          style={{ 
-            flex: "1 1 0%", 
-            minWidth: 0,
-            marginLeft: "256px",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <AdminTopbar />
-          <main style={{ flex: 1, padding: "1.5rem", overflow: "auto" }}>{children}</main>
-        </div>
-      </div>
-    )
+    return <AdminLayoutWrapper>{children}</AdminLayoutWrapper>
   } catch (error: any) {
     // Catch any unexpected errors and log them
     console.error("[AdminLayout] Unexpected error:", error?.message || error)
